@@ -7,4 +7,5 @@ fn main() {
     println!("Insertion sort: {:?}", sorting::insertion_sort(&arr));
     println!("Merge sort: {:?}", sorting::merge_sort(&arr));
     println!("Quick sort: {:?}", sorting::quick_sort(&arr));
+    println!("Heap sort: {:?}", sorting::heap_sort(&arr));
 }

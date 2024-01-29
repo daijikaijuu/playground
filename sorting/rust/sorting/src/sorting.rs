@@ -112,3 +112,41 @@ pub fn quick_sort(arr: &[i32]) -> Vec<i32> {
 
     left_sorted
 }
+
+// Heap sort
+pub fn heap_sort(arr: &[i32]) -> Vec<i32> {
+    let mut sorted_arr = arr.to_vec();
+    let len = sorted_arr.len();
+
+    // Build the max heap
+    for i in (0..len / 2).rev() {
+        heapify(&mut sorted_arr, i, len);
+    }
+
+    // Extract elements from the heap one by one
+    for i in (1..len).rev() {
+        sorted_arr.swap(0, i);
+        heapify(&mut sorted_arr, 0, i);
+    }
+
+    sorted_arr
+}
+
+fn heapify(arr: &mut Vec<i32>, root: usize, len: usize) {
+    let mut largest = root;
+    let left_child = 2 * root + 1;
+    let right_child = 2 * root + 2;
+
+    if left_child < len && arr[left_child] > arr[largest] {
+        largest = left_child;
+    }
+
+    if right_child < len && arr[right_child] > arr[largest] {
+        largest = right_child;
+    }
+
+    if largest != root {
+        arr.swap(root, largest);
+        heapify(arr, largest, len);
+    }
+}
