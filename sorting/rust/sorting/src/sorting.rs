@@ -88,3 +88,27 @@ fn merge(left: &[i32], right: &[i32]) -> Vec<i32> {
 
     result
 }
+
+pub fn quick_sort(arr: &[i32]) -> Vec<i32> {
+    if arr.len() <= 1 {
+        return arr.to_vec();
+    }
+
+    let pivot = arr[0];
+    let mut left_partition = Vec::new();
+    let mut right_partition = Vec::new();
+
+    for i in 1..arr.len() {
+        if arr[i] < pivot {
+            left_partition.push(arr[i]);
+        } else {
+            right_partition.push(arr[i]);
+        }
+    }
+
+    let mut left_sorted = quick_sort(&left_partition);
+    left_sorted.push(pivot);
+    left_sorted.extend(quick_sort(&right_partition));
+
+    left_sorted
+}
