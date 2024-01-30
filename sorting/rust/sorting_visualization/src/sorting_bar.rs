@@ -1,7 +1,7 @@
 use raylib::prelude::*;
 
 // Structure to represent a bar in the visualization
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct SortingBar {
     pub value: i32,
     pub color: Color,
