@@ -13,9 +13,8 @@ fn main() {
         .title("Sorting Visualization")
         .build();
 
-    // Initialize array of bars with random values
-
     while !rl.window_should_close() {
+        // Initialize array of bars with random values
         let values: Vec<SortingBar> = (1..=50)
             .map(|_| SortingBar::new(rand::random::<i32>() % 100))
             .collect();
