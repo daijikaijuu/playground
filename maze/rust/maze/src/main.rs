@@ -1,4 +1,5 @@
 use rand::seq::SliceRandom;
+use raylib::prelude::*;
 // use std::{thread, time};
 
 const ROWS: usize = 20;
@@ -19,10 +20,19 @@ impl Default for Cell {
 type Maze = [[Cell; COLS]; ROWS];
 
 fn main() {
+    let (mut rl, thread) = raylib::init().size(800, 800).title("Maze crawler").build();
+
     let mut maze = Maze::default();
     generate_maze(0, 0, &mut maze);
 
     print_maze(&maze);
+
+    while !rl.window_should_close() {
+        let mut d = rl.begin_drawing(&thread);
+
+        d.clear_background(Color::BLACK);
+        draw_maze(&maze, &mut d)
+    }
 }
 
 fn generate_maze(row: usize, col: usize, maze: &mut Maze) {
@@ -53,5 +63,24 @@ fn print_maze(maze: &Maze) {
             }
         }
         println!();
+    }
+}
+
+fn draw_maze(maze: &Maze, d: &mut RaylibDrawHandle) {
+    let cell_size: i32 = 16;
+    for (i, row) in maze.iter().enumerate() {
+        for (j, &cell) in row.iter().enumerate() {
+            let color = match cell {
+                Cell::Wall => Color::LIGHTGRAY,
+                Cell::Path => Color::BLACK,
+            };
+            d.draw_rectangle(
+                i as i32 * cell_size,
+                j as i32 * cell_size,
+                cell_size,
+                cell_size,
+                color,
+            );
+        }
     }
 }
