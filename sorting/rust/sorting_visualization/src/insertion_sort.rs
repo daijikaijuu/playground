@@ -19,7 +19,7 @@ pub fn insertion_sort(arr: &[SortingBar], rl: &mut RaylibHandle, thread: &Raylib
 
             // Visualization: Draw bars after each swap
             let mut d = rl.begin_drawing(thread);
-            draw_bars(&sorted_arr, &mut d);
+            draw_bars(&sorted_arr, &mut d, Some(j as i32), Some(j as i32 - 1));
             d.draw_text("Insertion Sort Visualization", 10, 10, 20, Color::BLACK);
 
             std::thread::sleep(Duration::from_millis(20));
