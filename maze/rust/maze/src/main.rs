@@ -3,8 +3,8 @@ use raylib::prelude::*;
 
 mod maze;
 
-const ROWS: usize = 40;
-const COLS: usize = 40;
+const ROWS: usize = 41;
+const COLS: usize = 41;
 
 fn main() {
     let (mut rl, thread) = raylib::init().size(800, 800).title("Maze crawler").build();
@@ -28,7 +28,8 @@ fn draw_maze(maze: &Maze, d: &mut RaylibDrawHandle) {
             let color = match maze.get_cell(x, y) {
                 MazeCell::Wall => Color::LIGHTGRAY,
                 MazeCell::Path => Color::BLACK,
-                _ => Color::BLACK,
+                MazeCell::Entrance => Color::BLUE,
+                MazeCell::Exit => Color::RED,
             };
             d.draw_rectangle(
                 x as i32 * cell_size,
