@@ -1,6 +1,6 @@
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use std::fmt;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -55,14 +55,14 @@ impl Maze {
         x >= 0 && y >= 0 && x < self.width as i32 && y < self.height as i32
     }
 
-    fn get_random_boundary_point(&self) -> (usize, usize) {
-        let side = thread_rng().gen_range(0..4); // 0: Top, 1: Right, 2: Bottom, 3: Left
+    fn get_random_boundary_point(&self, rng: &mut ThreadRng) -> (usize, usize) {
+        let side = rng.gen_range(0..4); // 0: Top, 1: Right, 2: Bottom, 3: Left
 
         let (x, y) = match side {
-            0 => (thread_rng().gen_range(1..self.width - 1), 0),
-            1 => (self.width - 1, thread_rng().gen_range(1..self.height - 1)),
-            2 => (thread_rng().gen_range(1..self.width - 1), self.height - 1),
-            3 => (0, thread_rng().gen_range(1..self.height - 1)),
+            0 => (rng.gen_range(1..self.width - 1), 0),
+            1 => (self.width - 1, rng.gen_range(1..self.height - 1)),
+            2 => (rng.gen_range(1..self.width - 1), self.height - 1),
+            3 => (0, rng.gen_range(1..self.height - 1)),
             _ => unreachable!(),
         };
 
@@ -86,7 +86,7 @@ impl MazeGenerator for Maze {
 
         self.set_cell(start_x, start_y, MazeCell::Entrance);
         // Find a random point on the boundary as the exit point
-        let exit_point = self.get_random_boundary_point();
+        let exit_point = self.get_random_boundary_point(&mut rng);
         self.set_cell(exit_point.0, exit_point.1, MazeCell::Exit);
     }
 
