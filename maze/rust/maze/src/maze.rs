@@ -3,12 +3,14 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use std::fmt;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum MazeCell {
     Wall,
     Path,
     Entrance,
     Exit,
+    Visited,
+    FinalPath,
 }
 
 pub trait MazeGenerator {
@@ -22,20 +24,52 @@ pub trait MazeGenerator {
     );
 }
 
+#[derive(Clone)]
 pub struct Maze {
     pub width: usize,
     pub height: usize,
     cells: Vec<MazeCell>,
+    original_cells: Vec<MazeCell>,
 }
 
 impl Maze {
     pub fn new(width: usize, height: usize) -> Self {
         let cells = vec![MazeCell::Wall; width * height];
+        let original_cells = vec![MazeCell::Wall; width * height];
         Maze {
             width,
             height,
             cells,
+            original_cells,
         }
+    }
+
+    pub fn get_entrance(&self) -> Option<(usize, usize)> {
+        // Find and return the entrance coordinated
+        self.original_cells
+            .iter()
+            .enumerate()
+            .find_map(|(index, &cell)| {
+                if cell == MazeCell::Entrance {
+                    Some((index % self.width, index / self.width))
+                } else {
+                    None
+                }
+            })
+    }
+
+    pub fn get_exit(&self) -> Option<(usize, usize)> {
+        // Find and return the entrance coordinated
+        self.original_cells
+            .iter()
+            .enumerate()
+            .find_map(|(index, &cell)| {
+                if cell == MazeCell::Exit {
+                    Some((index % self.width, index / self.width))
+                } else {
+                    None
+                }
+            })
     }
 
     pub fn get_index(&self, x: usize, y: usize) -> usize {
@@ -88,6 +122,9 @@ impl MazeGenerator for Maze {
         // Find a random point on the boundary as the exit point
         let exit_point = self.get_random_boundary_point(&mut rng);
         self.set_cell(exit_point.0, exit_point.1, MazeCell::Exit);
+
+        // Backup generated maze
+        self.original_cells = self.cells.clone();
     }
 
     fn depth_first_search(
@@ -131,6 +168,8 @@ impl fmt::Debug for Maze {
                     MazeCell::Path => write!(f, " ")?,
                     MazeCell::Entrance => write!(f, ">")?,
                     MazeCell::Exit => write!(f, "E")?,
+                    MazeCell::Visited => write!(f, "v")?,
+                    MazeCell::FinalPath => write!(f, "F")?,
                 }
             }
             writeln!(f)?;

@@ -3,3 +3,4 @@ debug/
 shared/
 target/
 *.o
+.vscode/
