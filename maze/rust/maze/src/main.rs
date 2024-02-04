@@ -22,7 +22,8 @@ fn main() {
 }
 
 fn draw_maze(maze: &Maze, d: &mut RaylibDrawHandle) {
-    let cell_size: i32 = 16;
+    let cell_width: i32 = d.get_screen_width() / (maze.width as i32);
+    let cell_height: i32 = d.get_screen_height() / maze.height as i32;
     for y in 0..maze.height {
         for x in 0..maze.width {
             let color = match maze.get_cell(x, y) {
@@ -32,10 +33,10 @@ fn draw_maze(maze: &Maze, d: &mut RaylibDrawHandle) {
                 MazeCell::Exit => Color::RED,
             };
             d.draw_rectangle(
-                x as i32 * cell_size,
-                y as i32 * cell_size,
-                cell_size,
-                cell_size,
+                x as i32 * cell_width,
+                y as i32 * cell_height,
+                cell_width,
+                cell_height,
                 color,
             );
         }
