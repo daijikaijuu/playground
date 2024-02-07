@@ -3,7 +3,6 @@ use raylib::prelude::*;
 
 pub struct MazeVisualization<'a> {
     pub maze: Maze,
-    pub cell_size: i32,
     pub rl: &'a mut RaylibHandle,
     thread: &'a RaylibThread,
 }
@@ -12,24 +11,30 @@ impl<'a> MazeVisualization<'a> {
     pub fn new(
         width: usize,
         height: usize,
-        cell_size: i32,
         rl: &'a mut RaylibHandle,
         thread: &'a RaylibThread,
     ) -> Self {
         let mut maze = Maze::new(width, height);
         maze.generate_maze(1, 1);
         println!("{:?}", maze);
-        MazeVisualization {
-            maze,
-            cell_size,
-            rl,
-            thread,
-        }
+        MazeVisualization { maze, rl, thread }
     }
 
-    pub fn draw(&mut self) {
+    pub fn draw(&mut self, title: &str) {
         let mut d = self.rl.begin_drawing(&self.thread);
         d.clear_background(Color::BLACK);
+
+        // Calculate the new cell size based on window size and padding
+        let new_cell_size = ((d.get_screen_width() - 35) as f32 / self.maze.width as f32) as i32;
+
+        // Calculate center-aligned position for the algorithm name
+        let text_size = raylib::core::text::measure_text(&title, 20);
+
+        let center_x = (d.get_screen_width() - text_size) / 2;
+        let center_y = 10;
+
+        // Draw the pathfinding algorithm name above the maze
+        d.draw_text(&title, center_x, center_y, 20, Color::WHITE);
 
         for y in 0..self.maze.height {
             for x in 0..self.maze.width {
@@ -52,10 +57,10 @@ impl<'a> MazeVisualization<'a> {
                 };
 
                 d.draw_rectangle(
-                    x as i32 * self.cell_size,
-                    y as i32 * self.cell_size,
-                    self.cell_size,
-                    self.cell_size,
+                    35 + x as i32 * new_cell_size,
+                    35 + y as i32 * new_cell_size,
+                    new_cell_size,
+                    new_cell_size,
                     color,
                 );
 
@@ -66,8 +71,8 @@ impl<'a> MazeVisualization<'a> {
 
                     d.draw_text(
                         &text,
-                        (x as i32 * self.cell_size + self.cell_size / 2 - text_size / 2),
-                        (y as i32 * self.cell_size + self.cell_size / 2 - text_size / 2),
+                        x as i32 * new_cell_size + new_cell_size / 2 - text_size / 2,
+                        y as i32 * new_cell_size + new_cell_size / 2 - text_size / 2,
                         10,
                         Color::RED,
                     );
@@ -76,9 +81,9 @@ impl<'a> MazeVisualization<'a> {
         }
     }
 
-    pub fn visualize(&mut self) {
+    pub fn visualize(&mut self, title: &str) {
         while !self.rl.window_should_close() {
-            self.draw();
+            self.draw(&title);
         }
     }
 }

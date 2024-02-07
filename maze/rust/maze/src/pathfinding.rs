@@ -6,6 +6,7 @@ use crate::{maze::MazeCell, visualization::MazeVisualization};
 
 pub trait PathfindingAlgorithm {
     fn find_path(&mut self, visualizer: &mut MazeVisualization) -> bool;
+    fn name(&self) -> &str;
 }
 
 pub struct Backtracking {
@@ -57,8 +58,8 @@ impl Backtracking {
                 visualization.maze.set_weighted_path(x, y, new_cost);
 
                 // Mark the final path
-                visualization.maze.set_cell(x, y, MazeCell::Visited);
-                visualization.draw();
+                visualization.maze.set_cell(x, y, MazeCell::FinalPath);
+                visualization.draw(self.name());
                 thread::sleep(Duration::from_millis(self.visualization_delay));
                 // Mark the path recursively backtrack
                 if self.backtrack(
@@ -70,6 +71,8 @@ impl Backtracking {
                     new_cost,
                 ) {
                     return true;
+                } else {
+                    visualization.maze.set_cell(x, y, MazeCell::Visited);
                 }
             }
         }
@@ -87,5 +90,9 @@ impl PathfindingAlgorithm for Backtracking {
 
         // Start the backtracking algorithm from the entrance
         self.backtrack(visualization, entrance.0, entrance.1, exit.0, exit.1, 0)
+    }
+
+    fn name(&self) -> &str {
+        "Backtracking"
     }
 }
