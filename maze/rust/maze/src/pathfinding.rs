@@ -10,11 +10,13 @@ pub trait PathfindingAlgorithm {
 
 pub struct Backtracking {
     pub visualization_delay: u64,
+    pub weighted: bool,
 }
 
 impl Backtracking {
-    pub fn new(visualization_delay: u64) -> Self {
+    pub fn new(weighted: bool, visualization_delay: u64) -> Self {
         Backtracking {
+            weighted,
             visualization_delay,
         }
     }
@@ -26,6 +28,7 @@ impl Backtracking {
         y: usize,
         exit_x: usize,
         exit_y: usize,
+        current_cost: u32,
     ) -> bool {
         visualization.maze.set_cell(x, y, MazeCell::Visited); // Mark cell as visited
 
@@ -48,6 +51,11 @@ impl Backtracking {
                         == MazeCell::Exit)
                 && !visualization.rl.window_should_close()
             {
+                let new_cost =
+                    current_cost + visualization.maze.get_weighted_path(x, y).unwrap_or(1);
+
+                visualization.maze.set_weighted_path(x, y, new_cost);
+
                 // Mark the final path
                 visualization.maze.set_cell(x, y, MazeCell::Visited);
                 visualization.draw();
@@ -59,6 +67,7 @@ impl Backtracking {
                     new_y as usize,
                     exit_x,
                     exit_y,
+                    new_cost,
                 ) {
                     return true;
                 }
@@ -77,6 +86,6 @@ impl PathfindingAlgorithm for Backtracking {
         let exit = visualization.maze.get_exit().unwrap();
 
         // Start the backtracking algorithm from the entrance
-        self.backtrack(visualization, entrance.0, entrance.1, exit.0, exit.1)
+        self.backtrack(visualization, entrance.0, entrance.1, exit.0, exit.1, 0)
     }
 }

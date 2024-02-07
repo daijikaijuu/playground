@@ -40,6 +40,15 @@ impl<'a> MazeVisualization<'a> {
                     MazeCell::Exit => Color::RED,
                     MazeCell::Visited => Color::GREEN,
                     MazeCell::FinalPath => Color::GOLD,
+                    MazeCell::WeightedPath(weight) => {
+                        // Choose a color based on the weight, you can adjust this logic
+                        Color::new(
+                            (weight % 256) as u8,
+                            ((weight / 256) % 256) as u8,
+                            ((weight / 256 / 256) % 256) as u8,
+                            255,
+                        )
+                    }
                 };
 
                 d.draw_rectangle(
@@ -49,6 +58,20 @@ impl<'a> MazeVisualization<'a> {
                     self.cell_size,
                     color,
                 );
+
+                // Draw weight information inside the cell
+                if let MazeCell::WeightedPath(weight) = self.maze.get_cell(x, y) {
+                    let text = format!("{}", weight);
+                    let text_size = raylib::core::text::measure_text(&text, 10);
+
+                    d.draw_text(
+                        &text,
+                        (x as i32 * self.cell_size + self.cell_size / 2 - text_size / 2),
+                        (y as i32 * self.cell_size + self.cell_size / 2 - text_size / 2),
+                        10,
+                        Color::RED,
+                    );
+                }
             }
         }
     }
