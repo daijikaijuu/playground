@@ -4,7 +4,7 @@ use raylib::prelude::*;
 pub struct MazeVisualization<'a> {
     pub maze: Maze,
     pub cell_size: i32,
-    rl: &'a mut RaylibHandle,
+    pub rl: &'a mut RaylibHandle,
     thread: &'a RaylibThread,
 }
 

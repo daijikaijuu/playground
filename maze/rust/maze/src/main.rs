@@ -15,7 +15,7 @@ fn main() {
 
     let mut maze_visualization = MazeVisualization::new(ROWS, COLS, 16, &mut rl, &thread);
     let mut backtracking_algorithm = Backtracking::new(20);
-    backtracking_algorithm.find_path(&mut maze_visualization);
+    if backtracking_algorithm.find_path(&mut maze_visualization) {}
 
     maze_visualization.visualize();
 }
