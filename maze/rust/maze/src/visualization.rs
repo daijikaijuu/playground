@@ -16,7 +16,6 @@ impl<'a> MazeVisualization<'a> {
     ) -> Self {
         let mut maze = Maze::new(width, height);
         maze.generate_maze(1, 1);
-        println!("{:?}", maze);
         MazeVisualization { maze, rl, thread }
     }
 
