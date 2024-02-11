@@ -16,7 +16,6 @@ impl<'a> MazeVisualization<'a> {
     ) -> Self {
         let mut maze = Maze::new(width, height);
         maze.generate_maze(1, 1);
-        println!("{:?}", maze);
         MazeVisualization { maze, rl, thread }
     }
 
@@ -43,8 +42,8 @@ impl<'a> MazeVisualization<'a> {
                     MazeCell::Path => Color::BLACK,
                     MazeCell::Entrance => Color::BLUE,
                     MazeCell::Exit => Color::RED,
-                    MazeCell::Visited => Color::GREEN,
-                    MazeCell::FinalPath => Color::GOLD,
+                    MazeCell::Visited => Color::DARKBLUE,
+                    MazeCell::FinalPath => Color::GREEN,
                     MazeCell::WeightedPath(weight) => {
                         // Choose a color based on the weight, you can adjust this logic
                         Color::new(
