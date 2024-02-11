@@ -1,8 +1,10 @@
-use crate::{
-    pathfinding::{Backtracking, PathfindingAlgorithm},
-    visualization::MazeVisualization,
-};
+use pathfinding::PathfindingAlgorithm;
 
+use crate::backtracking::Backtracking;
+use crate::visualization::MazeVisualization;
+
+mod astar;
+mod backtracking;
 mod maze;
 mod pathfinding;
 mod visualization;
