@@ -64,7 +64,7 @@ impl PathfindingAlgorithm for AStar {
     fn find_path(&mut self, visualizer: &mut MazeVisualization) -> bool {
         // Find entrance and exit coordinates
         let entrance = visualizer.maze.get_entrance().unwrap();
-        let exit = visualizer.maze.get_entrance().unwrap();
+        let exit = visualizer.maze.get_exit().unwrap();
 
         let start = Point {
             x: entrance.0,
