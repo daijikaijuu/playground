@@ -81,8 +81,10 @@ impl<'a> MazeVisualization<'a> {
     }
 
     pub fn visualize(&mut self, title: &str) {
-        while !self.rl.window_should_close() {
-            self.draw(&title);
-        }
+        self.draw(&title);
+    }
+
+    pub fn set_maze(&mut self, maze: &Maze) {
+        self.maze = maze.clone();
     }
 }
