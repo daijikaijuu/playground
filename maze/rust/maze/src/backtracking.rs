@@ -29,7 +29,6 @@ impl Backtracking {
         y: usize,
         exit_x: usize,
         exit_y: usize,
-        current_cost: u32,
     ) -> bool {
         maze.set_cell(x, y, MazeCell::Visited); // Mark cell as visited
 
@@ -51,9 +50,6 @@ impl Backtracking {
                 && (maze.get_cell(new_x as usize, new_y as usize) == MazeCell::Path
                     || maze.get_cell(new_x as usize, new_y as usize) == MazeCell::Exit)
             {
-                let new_cost = current_cost + maze.get_weighted_path(x, y).unwrap_or(1);
-
-                maze.set_weighted_path(x, y, new_cost);
                 sender.send(maze.clone()).unwrap();
 
                 // Mark the final path
@@ -66,7 +62,6 @@ impl Backtracking {
                     new_y as usize,
                     exit_x,
                     exit_y,
-                    new_cost,
                 ) {
                     return true;
                 } else {
@@ -98,16 +93,15 @@ impl PathfindingAlgorithm for Backtracking {
             Err(_err) => return false,
         };
 
-        let handle = thread::spawn(move || {
+        let handle = thread::spawn(move || loop {
             let mut maze = maze.lock().unwrap();
 
             // Start the backtracking algorithm from the entrance
-            Backtracking::backtrack(
-                &mut *maze, &sender, entrance.0, entrance.1, exit.0, exit.1, 0,
-            );
+            Backtracking::backtrack(&mut *maze, &sender, entrance.0, entrance.1, exit.0, exit.1);
         });
 
         while let Ok(recieved_maze) = receiver.try_recv() {
+            if visualization.rl.window_should_close() {}
             // Update the visualization with the new maze
             visualization.set_maze(&recieved_maze);
 

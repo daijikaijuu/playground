@@ -11,7 +11,6 @@ pub enum MazeCell {
     Exit,
     Visited,
     FinalPath,
-    WeightedPath(u32),
 }
 
 pub trait MazeGenerator {
@@ -88,18 +87,6 @@ impl Maze {
 
     pub fn is_valid_move(&self, x: i32, y: i32) -> bool {
         x >= 0 && y >= 0 && x < self.width as i32 && y < self.height as i32
-    }
-
-    pub fn set_weighted_path(&mut self, x: usize, y: usize, value: u32) {
-        let index = self.get_index(x, y);
-        self.cells[index] = MazeCell::WeightedPath(value);
-    }
-
-    pub fn get_weighted_path(&self, x: usize, y: usize) -> Option<u32> {
-        match self.cells[self.get_index(x, y)] {
-            MazeCell::WeightedPath(value) => Some(value),
-            _ => None,
-        }
     }
 
     fn get_random_boundary_point(&self, rng: &mut ThreadRng) -> (usize, usize) {
@@ -183,7 +170,6 @@ impl fmt::Debug for Maze {
                     MazeCell::Exit => write!(f, "E")?,
                     MazeCell::Visited => write!(f, "v")?,
                     MazeCell::FinalPath => write!(f, "F")?,
-                    MazeCell::WeightedPath(_) => write!(f, "0")?,
                 }
             }
             writeln!(f)?;
