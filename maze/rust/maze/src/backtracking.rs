@@ -93,7 +93,7 @@ impl PathfindingAlgorithm for Backtracking {
             Err(_err) => return false,
         };
 
-        let handle = thread::spawn(move || loop {
+        let handle = thread::spawn(move || {
             let mut maze = maze.lock().unwrap();
 
             // Start the backtracking algorithm from the entrance
