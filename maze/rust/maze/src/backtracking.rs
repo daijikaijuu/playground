@@ -101,7 +101,9 @@ impl PathfindingAlgorithm for Backtracking {
         });
 
         while let Ok(recieved_maze) = receiver.try_recv() {
-            if visualization.rl.window_should_close() {}
+            if visualization.rl.window_should_close() {
+                return false;
+            }
             // Update the visualization with the new maze
             visualization.set_maze(&recieved_maze);
 
