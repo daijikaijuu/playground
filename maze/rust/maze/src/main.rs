@@ -1,12 +1,11 @@
 use std::thread;
 use std::time::Duration;
 
+use crate::backtracking::Backtracking;
+use crate::visualization::MazeVisualization;
 use astar::AStar;
 use pathfinding::PathfindingAlgorithm;
 use ui::Ui;
-
-use crate::backtracking::Backtracking;
-use crate::visualization::MazeVisualization;
 
 mod astar;
 mod backtracking;
