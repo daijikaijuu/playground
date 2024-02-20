@@ -19,7 +19,7 @@ impl<'a> MazeVisualization<'a> {
         MazeVisualization { maze, rl, thread }
     }
 
-    pub fn draw(&mut self, title: &str) {
+    fn draw(&mut self, title: &str) {
         let mut d = self.rl.begin_drawing(&self.thread);
         d.clear_background(Color::BLACK);
 
