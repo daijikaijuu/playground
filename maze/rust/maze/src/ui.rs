@@ -1,19 +1,33 @@
+pub mod algorithm_selector;
 pub mod main_window;
 
-use std::ffi::CString;
+use std::{ffi::CString, thread, time::Duration};
 
 use raylib::{prelude::*, RaylibHandle, RaylibThread};
 
-use self::main_window::{MainWindow, ScreenState};
+use crate::{
+    astar::AStar, backtracking::Backtracking, pathfinding::PathfindingAlgorithm,
+    visualization::MazeVisualization,
+};
 
-pub struct Ui<'a> {
-    pub rl: &'a mut RaylibHandle,
-    thread: &'a RaylibThread,
+use self::{
+    algorithm_selector::AlgorithmSelector,
+    main_window::{MainWindow, ScreenState},
+};
+
+const ROWS: usize = 41;
+const COLS: usize = 41;
+
+pub struct Ui {
+    pub rl: RaylibHandle,
+    thread: RaylibThread,
     main_window: MainWindow,
 }
 
-impl<'a> Ui<'a> {
-    pub fn new(rl: &'a mut RaylibHandle, thread: &'a RaylibThread) -> Self {
+impl Ui {
+    pub fn new() -> Self {
+        let (rl, thread) = raylib::init().size(800, 800).title("Maze crawler").build();
+
         Ui {
             rl,
             thread,
@@ -22,6 +36,8 @@ impl<'a> Ui<'a> {
     }
 
     pub fn run(&mut self) {
+        let mut alg_selector = AlgorithmSelector::new();
+
         while !self.rl.window_should_close() {
             match self.main_window.screen_state {
                 ScreenState::Menu => {
@@ -43,8 +59,36 @@ impl<'a> Ui<'a> {
                         ),
                         Some(CString::new(title).unwrap().as_c_str()),
                     );
+
+                    let mut active: i32 = 0;
+                    let algorithm_selector = d.gui_dropdown_box(
+                        Rectangle::new(10.0, 30.0, 100.0, 40.0),
+                        Some(
+                            CString::new(alg_selector.selected_name())
+                                .unwrap()
+                                .as_c_str(),
+                        ),
+                        &mut active,
+                        false,
+                    );
                 }
-                ScreenState::Pathfinding => {}
+                ScreenState::Pathfinding => {
+                    // Backtracking algorithm
+                    let mut maze_visualization =
+                        MazeVisualization::new(ROWS, COLS, &mut self.rl, &self.thread);
+                    let mut backtracking_algorithm = Backtracking::new();
+                    if backtracking_algorithm.find_path(&mut maze_visualization) {}
+
+                    thread::sleep(Duration::from_secs(2));
+
+                    // AStar algorithm
+                    let mut maze_visualization =
+                        MazeVisualization::new(ROWS, COLS, &mut self.rl, &self.thread);
+                    let mut astar_algorithm = AStar::new(20);
+                    if astar_algorithm.find_path(&mut maze_visualization) {}
+
+                    maze_visualization.visualize(astar_algorithm.name());
+                }
             }
         }
     }
