@@ -27,10 +27,9 @@ impl<'a> MazeVisualization<'a> {
         let new_cell_size = ((d.get_screen_width() - 35) as f32 / self.maze.width as f32) as i32;
 
         // Calculate center-aligned position for the algorithm name
-        let font = d.get_font_default();
-        let text_size = font.measure_text(&title, 20.0, 1.0);
+        let text_size = raylib::text::measure_text(&title, 20);
 
-        let center_x = (d.get_screen_width() - text_size.x as i32) / 2;
+        let center_x = (d.get_screen_width() - text_size) / 2;
         let center_y = 10;
 
         // Draw the pathfinding algorithm name above the maze

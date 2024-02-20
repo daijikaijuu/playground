@@ -1,6 +1,6 @@
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 
-use raylib::{prelude::*, rgui::IntoCStr, RaylibHandle, RaylibThread};
+use raylib::{prelude::*, RaylibHandle, RaylibThread};
 
 pub struct Ui<'a> {
     pub rl: &'a mut RaylibHandle,
@@ -20,11 +20,18 @@ impl<'a> Ui<'a> {
             // Create UI
             d.gui_enable();
 
-            // let title = CString::new("Maze crawler").unwrap().as_c_str();
-            // let _title_label = d.gui_label(
-            //     Rectangle::new(0.0, 0.0, d.get_screen_width() as f32, 30.0),
-            //     title,
-            // );
+            let title = "Maze crawler";
+            let font_size = d.gui_get_font().baseSize;
+            let title_width = raylib::text::measure_text(title, font_size);
+            let _title_label = d.gui_label(
+                Rectangle::new(
+                    (d.get_screen_width() / 2) as f32 - (title_width / 2) as f32,
+                    0.0,
+                    0.0,
+                    30.0,
+                ),
+                Some(CString::new(title).unwrap().as_c_str()),
+            );
         }
     }
 }

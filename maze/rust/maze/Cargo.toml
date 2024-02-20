@@ -7,8 +7,4 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
-
-[dependencies.raylib]
-version = "5.0.0"
-git = "https://github.com/bitten2up/raylib-rs"
-branch = "5.0.0"
+raylib = "3.7.0"
