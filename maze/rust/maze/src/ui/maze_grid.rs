@@ -131,7 +131,7 @@ impl canvas::Program<Message> for MazeGrid {
                             crate::maze::MazeCell::Entrance => Color::from_rgb8(0, 0, 255),
                             crate::maze::MazeCell::Exit => Color::from_rgb8(255, 0, 0),
                             crate::maze::MazeCell::Visited => Color::from_rgb8(0, 0, 100),
-                            crate::maze::MazeCell::FinalPath => Color::from_rgb8(100, 100, 255),
+                            crate::maze::MazeCell::FinalPath => Color::from_rgb8(100, 155, 255),
                         },
                     );
                     frame.stroke(
