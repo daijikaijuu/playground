@@ -1,5 +1,6 @@
 use std::{
     cmp::{max, min},
+    collections::VecDeque,
     sync::mpsc::{channel, Receiver, Sender},
     thread,
     time::Duration,
@@ -24,12 +25,14 @@ use crate::{
 pub struct MazeGrid {
     maze: Maze,
     grid_cache: Cache,
+    animation_queue: VecDeque<Maze>,
     pub selected_algorithm: Algorithm,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
     GenerateMaze,
+    Animate,
     SelectAlgorithm(Algorithm),
     Ticked {
         result: Result<Maze, TickError>,
@@ -48,6 +51,7 @@ impl MazeGrid {
             maze: Maze::new(41, 41),
             grid_cache: Cache::default(),
             selected_algorithm: Algorithm::default(),
+            animation_queue: VecDeque::new(),
         }
     }
 
@@ -68,6 +72,7 @@ impl MazeGrid {
                 result,
                 tick_duration,
             } => todo!(),
+            Message::Animate => todo!(),
         }
     }
 
@@ -87,7 +92,8 @@ impl MazeGrid {
         });
 
         while let Ok(recieved_maze) = reciever.recv() {
-            self.maze = recieved_maze;
+            self.maze = recieved_maze.clone();
+            self.animation_queue.push_back(recieved_maze);
             self.grid_cache.clear();
         }
 

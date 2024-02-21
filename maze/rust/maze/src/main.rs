@@ -70,6 +70,7 @@ impl Application for MainWindow {
                 .on_press(Message::MazeGrid(ui::maze_grid::Message::GenerateMaze))
                 .style(theme::Button::Secondary),
             button("Find path").on_press(Message::FindPath),
+            button("Animate").on_press(Message::MazeGrid(ui::maze_grid::Message::Animate)),
         ]
         .spacing(10);
 
