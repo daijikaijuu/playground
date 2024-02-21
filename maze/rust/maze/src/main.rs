@@ -10,7 +10,7 @@ mod maze;
 mod ui;
 mod visualization;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct MainWindow {
     maze_grid: MazeGrid,
     selected_algorithm: Option<Algorithm>,
@@ -30,7 +30,13 @@ impl Application for MainWindow {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        (Self::default(), Command::none())
+        (
+            MainWindow {
+                maze_grid: MazeGrid::new(),
+                selected_algorithm: Some(Algorithm::default()),
+            },
+            Command::none(),
+        )
     }
 
     fn title(&self) -> String {
@@ -42,7 +48,7 @@ impl Application for MainWindow {
             Message::AlgorithmSelected(algorithm) => {
                 self.selected_algorithm = Some(algorithm);
             }
-            Message::GenerateMaze => {}
+            Message::GenerateMaze => self.maze_grid.generate_maze(),
             Message::MazeGrid(_) => {}
         }
         Command::none()
@@ -71,11 +77,9 @@ impl Application for MainWindow {
         ]
         .spacing(10);
 
-        let maze_grid = MazeGrid::new();
-
         column![
             top_controls,
-            &maze_grid
+            self.maze_grid
                 .view()
                 .map(move |message| Message::MazeGrid(message))
         ]

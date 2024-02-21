@@ -3,9 +3,10 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use std::fmt;
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub enum MazeCell {
     Wall,
+    #[default]
     Path,
     Entrance,
     Exit,
@@ -24,7 +25,7 @@ pub trait MazeGenerator {
     );
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Maze {
     pub width: usize,
     pub height: usize,
@@ -106,6 +107,8 @@ impl Maze {
 
 impl MazeGenerator for Maze {
     fn generate_maze(&mut self, start_x: usize, start_y: usize) {
+        self.cells = vec![MazeCell::Wall; self.width * self.height];
+
         let mut rng = rand::thread_rng();
         let directions = [(0, -2), (0, 2), (-2, 0), (2, 0)];
 
