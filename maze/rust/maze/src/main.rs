@@ -48,7 +48,9 @@ impl Application for MainWindow {
             Message::AlgorithmSelected(algorithm) => {
                 self.selected_algorithm = Some(algorithm);
             }
-            Message::GenerateMaze => self.maze_grid.generate_maze(),
+            Message::GenerateMaze => {
+                self.maze_grid.generate_maze();
+            }
             Message::MazeGrid(_) => {}
         }
         Command::none()

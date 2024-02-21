@@ -61,10 +61,10 @@ impl canvas::Program<Message> for MazeGrid {
 
             for col in 0..cols {
                 for row in 0..rows {
-                    let start_point = Point::new(col as f32 * cell_size, row as f32 * cell_size);
+                    let starting_point = Point::new(col as f32 * cell_size, row as f32 * cell_size);
                     let size = Size::new(cell_size, cell_size);
                     frame.fill_rectangle(
-                        start_point,
+                        starting_point,
                         size,
                         match self.maze.get_cell(row, col) {
                             crate::maze::MazeCell::Wall => Color::from_rgb8(100, 100, 100),
@@ -76,7 +76,7 @@ impl canvas::Program<Message> for MazeGrid {
                         },
                     );
                     frame.stroke(
-                        &Path::rectangle(start_point, size),
+                        &Path::rectangle(starting_point, size),
                         Stroke::default()
                             .with_width(1.0)
                             .with_color(Color::from_rgb8(55, 55, 55)),
