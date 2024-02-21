@@ -11,9 +11,10 @@ use rand::seq::SliceRandom;
 
 use crate::{
     maze::{Maze, MazeCell},
-    pathfinding::PathfindingAlgorithm,
     visualization::MazeVisualization,
 };
+
+use super::pathfinding::PathfindingAlgorithm;
 
 pub struct Backtracking {}
 

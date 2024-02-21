@@ -1,23 +1,26 @@
 use iced::{
-    executor,
-    widget::{pick_list, row, text},
+    executor, theme,
+    widget::{button, column, pick_list, row, text},
     window, Application, Command, Settings, Theme,
 };
+use ui::MazeGrid;
 
-mod astar;
-mod backtracking;
+mod algorithms;
 mod maze;
-mod pathfinding;
+mod ui;
 mod visualization;
 
 #[derive(Debug, Default)]
 struct MainWindow {
+    maze_grid: MazeGrid,
     selected_algorithm: Option<Algorithm>,
 }
 
 #[derive(Debug, Clone, Copy)]
 enum Message {
     AlgorithmSelected(Algorithm),
+    GenerateMaze,
+    MazeGrid(ui::maze_grid::Message),
 }
 
 impl Application for MainWindow {
@@ -39,6 +42,8 @@ impl Application for MainWindow {
             Message::AlgorithmSelected(algorithm) => {
                 self.selected_algorithm = Some(algorithm);
             }
+            Message::GenerateMaze => {}
+            Message::MazeGrid(_) => {}
         }
         Command::none()
     }
@@ -50,11 +55,29 @@ impl Application for MainWindow {
             Message::AlgorithmSelected,
         )
         .placeholder("Choose an algorithm");
-        // let col = row![horizontal_space()];
 
-        row![
+        let button_controls = row![
+            button("Generate maze")
+                .on_press(Message::GenerateMaze)
+                .style(theme::Button::Secondary),
+            button("Find path"),
+        ]
+        .spacing(10);
+
+        let top_controls = row![
             text(format!("Maze crawler")).size(20),
-            algorithm_selector_list
+            algorithm_selector_list,
+            button_controls,
+        ]
+        .spacing(10);
+
+        let maze_grid = MazeGrid::new();
+
+        column![
+            top_controls,
+            &maze_grid
+                .view()
+                .map(move |message| Message::MazeGrid(message))
         ]
         .into()
     }

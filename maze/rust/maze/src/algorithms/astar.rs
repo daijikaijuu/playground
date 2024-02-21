@@ -11,9 +11,10 @@ use std::{
 
 use crate::{
     maze::{Maze, MazeCell},
-    pathfinding::PathfindingAlgorithm,
     visualization::MazeVisualization,
 };
+
+use super::pathfinding::PathfindingAlgorithm;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 struct Point {
