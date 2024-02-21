@@ -16,10 +16,10 @@ struct MainWindow {
     selected_algorithm: Option<Algorithm>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 enum Message {
     AlgorithmSelected(Algorithm),
-    GenerateMaze,
+    FindPath,
     MazeGrid(ui::maze_grid::Message),
 }
 
@@ -47,11 +47,12 @@ impl Application for MainWindow {
         match message {
             Message::AlgorithmSelected(algorithm) => {
                 self.selected_algorithm = Some(algorithm);
+                self.maze_grid.selected_algorithm = algorithm;
             }
-            Message::GenerateMaze => {
-                self.maze_grid.generate_maze();
+            Message::MazeGrid(message) => {
+                self.maze_grid.update(message);
             }
-            Message::MazeGrid(_) => {}
+            Message::FindPath => self.maze_grid.start(),
         }
         Command::none()
     }
@@ -66,9 +67,9 @@ impl Application for MainWindow {
 
         let button_controls = row![
             button("Generate maze")
-                .on_press(Message::GenerateMaze)
+                .on_press(Message::MazeGrid(ui::maze_grid::Message::GenerateMaze))
                 .style(theme::Button::Secondary),
-            button("Find path"),
+            button("Find path").on_press(Message::FindPath),
         ]
         .spacing(10);
 

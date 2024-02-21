@@ -1,4 +1,6 @@
 mod pathfinding;
 
-mod astar;
+//mod astar;
 mod backtracking;
+
+pub use backtracking::*;

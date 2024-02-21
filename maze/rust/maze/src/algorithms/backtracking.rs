@@ -1,18 +1,8 @@
-use std::{
-    sync::{
-        mpsc::{channel, Receiver, Sender},
-        Arc, Mutex,
-    },
-    thread,
-    time::Duration,
-};
+use std::sync::mpsc::Sender;
 
 use rand::seq::SliceRandom;
 
-use crate::{
-    maze::{Maze, MazeCell},
-    visualization::MazeVisualization,
-};
+use crate::maze::{Maze, MazeCell};
 
 use super::pathfinding::PathfindingAlgorithm;
 
@@ -23,7 +13,7 @@ impl Backtracking {
         Backtracking {}
     }
 
-    fn backtrack(
+    pub fn backtrack(
         maze: &mut Maze,
         sender: &Sender<Maze>,
         x: usize,
@@ -76,47 +66,47 @@ impl Backtracking {
 }
 
 impl PathfindingAlgorithm for Backtracking {
-    fn find_path(&mut self, visualization: &mut MazeVisualization) -> bool {
-        let (sender, receiver): (Sender<Maze>, Receiver<Maze>) = channel();
-        let maze = Arc::new(Mutex::new(visualization.maze.clone()));
+    fn find_path(&mut self) {
+        // let (sender, receiver): (Sender<Maze>, Receiver<Maze>) = channel();
+        // let maze = Arc::new(Mutex::new(visualization.maze.clone()));
 
-        // Reset the maze to its original state
-        // Find entrance and exit coordinated
-        let entrance = visualization.maze.get_entrance().unwrap();
-        let exit = visualization.maze.get_exit().unwrap();
+        // // Reset the maze to its original state
+        // // Find entrance and exit coordinated
+        // let entrance = visualization.maze.get_entrance().unwrap();
+        // let exit = visualization.maze.get_exit().unwrap();
 
-        // Clone the initial maze information and send it to the main thread
-        match sender
-            .send(visualization.maze.clone())
-            .map_err(|e| format!("Failed to send initial data: {}", e))
-        {
-            Ok(it) => it,
-            Err(_err) => return false,
-        };
+        // // Clone the initial maze information and send it to the main thread
+        // match sender
+        //     .send(visualization.maze.clone())
+        //     .map_err(|e| format!("Failed to send initial data: {}", e))
+        // {
+        //     Ok(it) => it,
+        //     Err(_err) => return false,
+        // };
 
-        let handle = thread::spawn(move || {
-            let mut maze = maze.lock().unwrap();
+        // let handle = thread::spawn(move || {
+        //     let mut maze = maze.lock().unwrap();
 
-            // Start the backtracking algorithm from the entrance
-            Backtracking::backtrack(&mut *maze, &sender, entrance.0, entrance.1, exit.0, exit.1);
-        });
+        //     // Start the backtracking algorithm from the entrance
+        //     Backtracking::backtrack(&mut *maze, &sender, entrance.0, entrance.1, exit.0, exit.1);
+        // });
 
-        while let Ok(recieved_maze) = receiver.try_recv() {
-            if visualization.rl.window_should_close() {
-                return false;
-            }
-            // Update the visualization with the new maze
-            visualization.set_maze(&recieved_maze);
+        // while let Ok(recieved_maze) = receiver.try_recv() {
+        //     if visualization.rl.window_should_close() {
+        //         return false;
+        //     }
+        //     // Update the visualization with the new maze
+        //     visualization.set_maze(&recieved_maze);
 
-            visualization.visualize(self.name());
+        //     visualization.visualize(self.name());
 
-            thread::sleep(Duration::from_millis(30));
-        }
+        //     thread::sleep(Duration::from_millis(30));
+        // }
 
-        // Wait for the backtracking thread to finish
-        handle.join().unwrap();
+        // // Wait for the backtracking thread to finish
+        // handle.join().unwrap();
 
-        true
+        // true
     }
 
     fn name(&self) -> &str {
