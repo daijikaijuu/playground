@@ -9,9 +9,9 @@ use super::pathfinding::PathfindingAlgorithm;
 pub struct Backtracking {}
 
 impl Backtracking {
-    pub fn new() -> Self {
-        Backtracking {}
-    }
+    // pub fn new() -> Self {
+    //     Backtracking {}
+    // }
 
     pub fn backtrack(
         maze: &mut Maze,

@@ -1,6 +1,8 @@
+use std::time::Duration;
+
 use iced::{
-    executor, theme,
-    widget::{button, column, pick_list, row, text},
+    executor, theme, time,
+    widget::{button, column, pick_list, row, text, vertical_space},
     window, Application, Command, Settings, Theme,
 };
 use ui::MazeGrid;
@@ -8,7 +10,6 @@ use ui::MazeGrid;
 mod algorithms;
 mod maze;
 mod ui;
-mod visualization;
 
 #[derive(Debug)]
 struct MainWindow {
@@ -21,6 +22,7 @@ enum Message {
     AlgorithmSelected(Algorithm),
     FindPath,
     MazeGrid(ui::maze_grid::Message),
+    Tick,
 }
 
 impl Application for MainWindow {
@@ -53,6 +55,12 @@ impl Application for MainWindow {
                 self.maze_grid.update(message);
             }
             Message::FindPath => self.maze_grid.start(),
+            Message::Tick => {
+                println!("Tok");
+                return Command::perform(async {}, |_| {
+                    Message::MazeGrid(ui::maze_grid::Message::Tick)
+                });
+            }
         }
         Command::none()
     }
@@ -70,7 +78,7 @@ impl Application for MainWindow {
                 .on_press(Message::MazeGrid(ui::maze_grid::Message::GenerateMaze))
                 .style(theme::Button::Secondary),
             button("Find path").on_press(Message::FindPath),
-            button("Animate").on_press(Message::MazeGrid(ui::maze_grid::Message::Animate)),
+            //button("Animate"), //.on_press(Message::MazeGrid(ui::maze_grid::Message::Animate)),
         ]
         .spacing(10);
 
@@ -82,7 +90,9 @@ impl Application for MainWindow {
         .spacing(10);
 
         column![
+            vertical_space().height(5),
             top_controls,
+            vertical_space().height(5),
             self.maze_grid
                 .view()
                 .map(move |message| Message::MazeGrid(message))
@@ -92,6 +102,10 @@ impl Application for MainWindow {
 
     fn theme(&self) -> Self::Theme {
         Theme::Dark
+    }
+
+    fn subscription(&self) -> iced::Subscription<Self::Message> {
+        time::every(Duration::from_millis(20)).map(|_| Message::Tick)
     }
 }
 

@@ -45,6 +45,15 @@ impl Maze {
         }
     }
 
+    pub fn from_original(&self) -> Self {
+        Maze {
+            width: self.width,
+            height: self.height,
+            cells: self.original_cells.clone(),
+            original_cells: self.original_cells.clone(),
+        }
+    }
+
     pub fn get_entrance(&self) -> Option<(usize, usize)> {
         // Find and return the entrance coordinated
         self.original_cells

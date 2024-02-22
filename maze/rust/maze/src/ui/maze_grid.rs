@@ -3,7 +3,6 @@ use std::{
     collections::VecDeque,
     sync::mpsc::{channel, Receiver, Sender},
     thread,
-    time::Duration,
 };
 
 use iced::{
@@ -32,17 +31,9 @@ pub struct MazeGrid {
 #[derive(Debug, Clone)]
 pub enum Message {
     GenerateMaze,
-    Animate,
     SelectAlgorithm(Algorithm),
-    Ticked {
-        result: Result<Maze, TickError>,
-        tick_duration: Duration,
-    },
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum TickError {
-    JoinFailed,
+    Ticked,
+    Tick,
 }
 
 impl MazeGrid {
@@ -68,15 +59,29 @@ impl MazeGrid {
                 self.selected_algorithm = algorithm;
             }
             Message::GenerateMaze => self.generate_maze(),
-            Message::Ticked {
-                result,
-                tick_duration,
-            } => todo!(),
-            Message::Animate => todo!(),
+            Message::Ticked => {}
+            Message::Tick => {
+                self.tick();
+            }
+        }
+    }
+
+    pub fn tick(&mut self) {
+        if !self.animation_queue.is_empty() {
+            self.maze = self
+                .animation_queue
+                .pop_front()
+                .expect("Cannot pop animation frame");
+            self.grid_cache.clear();
         }
     }
 
     pub fn start(&mut self) {
+        // Reset maze
+        self.grid_cache.clear();
+        self.animation_queue.clear();
+        self.maze = self.maze.from_original();
+
         let (sender, reciever): (Sender<Maze>, Receiver<Maze>) = channel();
 
         let entrance = self.maze.get_entrance().expect("Cannot find entrance");
@@ -85,7 +90,6 @@ impl MazeGrid {
         let mut maze = self.maze.clone();
 
         let handle = thread::spawn(move || {
-            let backtracking = algorithms::Backtracking::new();
             algorithms::Backtracking::backtrack(
                 &mut maze, &sender, entrance.0, entrance.1, exit.0, exit.1,
             );
@@ -94,15 +98,16 @@ impl MazeGrid {
         while let Ok(recieved_maze) = reciever.recv() {
             self.maze = recieved_maze.clone();
             self.animation_queue.push_back(recieved_maze);
-            self.grid_cache.clear();
         }
 
-        handle.join().unwrap();
+        handle.join().expect("Failed to join thread");
+        self.grid_cache.clear();
     }
 
     fn generate_maze(&mut self) {
         self.maze.generate_maze(1, 1);
         self.grid_cache.clear();
+        self.animation_queue.clear();
     }
 }
 
