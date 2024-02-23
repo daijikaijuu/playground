@@ -56,7 +56,6 @@ impl Application for MainWindow {
             }
             Message::FindPath => self.maze_grid.start(),
             Message::Tick => {
-                println!("Tok");
                 return Command::perform(async {}, |_| {
                     Message::MazeGrid(ui::maze_grid::Message::Tick)
                 });
