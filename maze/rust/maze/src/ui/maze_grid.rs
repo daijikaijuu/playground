@@ -15,7 +15,7 @@ use iced::{
 };
 
 use crate::{
-    algorithms,
+    algorithms::{Backtracking, PathfindingAlgorithm},
     maze::{Maze, MazeGenerator},
     Algorithm,
 };
@@ -84,15 +84,11 @@ impl MazeGrid {
 
         let (sender, reciever): (Sender<Maze>, Receiver<Maze>) = channel();
 
-        let entrance = self.maze.get_entrance().expect("Cannot find entrance");
-        let exit = self.maze.get_exit().expect("Cannot find exit");
-
         let mut maze = self.maze.clone();
 
         let handle = thread::spawn(move || {
-            algorithms::Backtracking::backtrack(
-                &mut maze, &sender, entrance.0, entrance.1, exit.0, exit.1,
-            );
+            let mut backtracking = Backtracking::new();
+            backtracking.find_path(&mut maze, &sender);
         });
 
         while let Ok(recieved_maze) = reciever.recv() {

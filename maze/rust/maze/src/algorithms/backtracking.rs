@@ -9,11 +9,11 @@ use super::pathfinding::PathfindingAlgorithm;
 pub struct Backtracking {}
 
 impl Backtracking {
-    // pub fn new() -> Self {
-    //     Backtracking {}
-    // }
+    pub fn new() -> Self {
+        Backtracking {}
+    }
 
-    pub fn backtrack(
+    fn backtrack(
         maze: &mut Maze,
         sender: &Sender<Maze>,
         x: usize,
@@ -66,47 +66,13 @@ impl Backtracking {
 }
 
 impl PathfindingAlgorithm for Backtracking {
-    fn find_path(&mut self) {
-        // let (sender, receiver): (Sender<Maze>, Receiver<Maze>) = channel();
-        // let maze = Arc::new(Mutex::new(visualization.maze.clone()));
+    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
+        // Reset the maze to its original state
+        // Find entrance and exit coordinated
+        let entrance = maze.get_entrance().expect("Cannot find entrance");
+        let exit = maze.get_exit().expect("Cannot find exit");
 
-        // // Reset the maze to its original state
-        // // Find entrance and exit coordinated
-        // let entrance = visualization.maze.get_entrance().unwrap();
-        // let exit = visualization.maze.get_exit().unwrap();
-
-        // // Clone the initial maze information and send it to the main thread
-        // match sender
-        //     .send(visualization.maze.clone())
-        //     .map_err(|e| format!("Failed to send initial data: {}", e))
-        // {
-        //     Ok(it) => it,
-        //     Err(_err) => return false,
-        // };
-
-        // let handle = thread::spawn(move || {
-        //     let mut maze = maze.lock().unwrap();
-
-        //     // Start the backtracking algorithm from the entrance
-        //     Backtracking::backtrack(&mut *maze, &sender, entrance.0, entrance.1, exit.0, exit.1);
-        // });
-
-        // while let Ok(recieved_maze) = receiver.try_recv() {
-        //     if visualization.rl.window_should_close() {
-        //         return false;
-        //     }
-        //     // Update the visualization with the new maze
-        //     visualization.set_maze(&recieved_maze);
-
-        //     visualization.visualize(self.name());
-
-        //     thread::sleep(Duration::from_millis(30));
-        // }
-
-        // // Wait for the backtracking thread to finish
-        // handle.join().unwrap();
-
-        // true
+        Backtracking::backtrack(maze, sender, entrance.0, entrance.1, exit.0, exit.1);
     }
 
     fn name(&self) -> &str {

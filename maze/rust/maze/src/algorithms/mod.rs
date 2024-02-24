@@ -4,3 +4,4 @@ mod pathfinding;
 mod backtracking;
 
 pub use backtracking::*;
+pub use pathfinding::*;
