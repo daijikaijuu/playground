@@ -15,9 +15,8 @@ use iced::{
 };
 
 use crate::{
-    algorithms::{Backtracking, PathfindingAlgorithm},
+    algorithms::{Algorithm, Backtracking, PathfindingAlgorithm},
     maze::{Maze, MazeGenerator},
-    Algorithm,
 };
 
 #[derive(Debug)]

@@ -4,7 +4,7 @@ use rand::seq::SliceRandom;
 
 use crate::maze::{Maze, MazeCell};
 
-use super::pathfinding::PathfindingAlgorithm;
+use super::{pathfinding::PathfindingAlgorithm, Algorithm};
 
 pub struct Backtracking {}
 
@@ -75,7 +75,7 @@ impl PathfindingAlgorithm for Backtracking {
         Backtracking::backtrack(maze, sender, entrance.0, entrance.1, exit.0, exit.1);
     }
 
-    fn name(&self) -> &str {
-        "Backtracking"
+    fn name(&self) -> Algorithm {
+        Algorithm::Backtracking
     }
 }

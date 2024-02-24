@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use algorithms::Algorithm;
 use iced::{
     executor, theme, time,
     widget::{button, column, pick_list, row, text, vertical_space},
@@ -133,27 +134,3 @@ fn main() -> iced::Result {
 // if astar_algorithm.find_path(&mut maze_visualization) {}
 
 // maze_visualization.visualize(astar_algorithm.name());
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Algorithm {
-    #[default]
-    Backtracking,
-    AStar,
-}
-
-impl Algorithm {
-    const ALL: [Algorithm; 2] = [Algorithm::Backtracking, Algorithm::AStar];
-}
-
-impl std::fmt::Display for Algorithm {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Algorithm::Backtracking => "Backtracking",
-                Algorithm::AStar => "AStar",
-            }
-        )
-    }
-}
