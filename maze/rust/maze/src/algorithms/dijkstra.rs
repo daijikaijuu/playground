@@ -1,53 +1,42 @@
 use std::{
-    cmp::Ordering,
     collections::{BinaryHeap, HashMap},
     sync::mpsc::Sender,
 };
 
 use crate::maze::{Maze, MazeCell};
 
-use super::{pathfinding::PathfindingAlgorithm, Algorithm, Point};
+use super::{Algorithm, PathfindingAlgorithm, Point};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct Node {
     point: Point,
-    g: u32,
-    h: u32,
+    cost: u32,
 }
 
 impl Ord for Node {
-    fn cmp(&self, other: &Self) -> Ordering {
-        // A* uses f(n) = g(n) + h(n) as the cost function
-        (other.g + other.h).cmp(&(self.g + self.h))
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.cost.cmp(&self.cost)
     }
 }
 
 impl PartialOrd for Node {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-pub struct AStar {}
+pub struct Dijkstra;
 
-impl AStar {
+impl Dijkstra {
     pub fn new() -> Self {
-        AStar {}
+        Dijkstra
     }
+}
 
-    fn heuristic(&self, current: &Point, goal: &Point) -> u32 {
-        // Simple Manhattan distance as the heuristic
-        ((current.x as i32 - goal.x as i32).abs() + (current.y as i32 - goal.y as i32).abs()) as u32
-    }
-
-    fn reconstruct_path(
-        came_from: &HashMap<Point, Point>,
-        mut current: Point,
-        // running_flag: Arc<Mutex<bool>>,
-    ) -> Vec<Point> {
+impl Dijkstra {
+    fn reconstruct_path(came_from: &HashMap<Point, Point>, mut current: Point) -> Vec<Point> {
         let mut path = vec![current];
         while came_from.contains_key(&current) {
-            //&& *running_flag.lock().unwrap() {
             current = *came_from.get(&current).unwrap();
             path.push(current);
         }
@@ -56,11 +45,11 @@ impl AStar {
     }
 }
 
-impl PathfindingAlgorithm for AStar {
+impl PathfindingAlgorithm for Dijkstra {
     fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
         // Find entrance and exit coordinates
-        let entrance = maze.get_entrance().unwrap();
-        let exit = maze.get_exit().unwrap();
+        let entrance = maze.get_entrance().expect("Cannot find entrance point");
+        let exit = maze.get_exit().expect("Cannot find exit point");
 
         let start = Point {
             x: entrance.0,
@@ -73,28 +62,28 @@ impl PathfindingAlgorithm for AStar {
 
         let mut open_set = BinaryHeap::new();
         let mut came_from: HashMap<Point, Point> = HashMap::new();
-        let mut g_scores: HashMap<Point, u32> = HashMap::new();
+        let mut costs: HashMap<Point, u32> = HashMap::new();
 
         open_set.push(Node {
             point: start,
-            g: 0,
-            h: self.heuristic(&start, &goal),
+            cost: 0,
         });
-        g_scores.insert(start, 0);
+        costs.insert(start, 0);
 
         while let Some(current_node) = open_set.pop() {
             let current = current_node.point;
 
             if current == goal {
-                let path = AStar::reconstruct_path(&came_from, current);
+                // Reached the exit, reconstruct and visualize the path
+                let path = Self::reconstruct_path(&came_from, current);
                 for point in path.iter().skip(1) {
                     maze.set_cell(point.x, point.y, MazeCell::FinalPath);
 
+                    // Send the updated maze to the mazin thread
                     sender
                         .send(maze.clone())
                         .expect("Failed to send maze to the main thread");
                 }
-                // *running_flag_clone.lock().unwrap() = false;
             }
 
             for (dx, dy) in &[(0, 1), (1, 0), (0, -1), (-1, 0)] {
@@ -109,23 +98,22 @@ impl PathfindingAlgorithm for AStar {
                     continue;
                 }
 
-                let tentative_g_score = g_scores[&current] + 1;
+                let tentative_cost = costs[&current] + 1;
 
-                if !g_scores.contains_key(&neighbor) || tentative_g_score < g_scores[&neighbor] {
-                    g_scores.insert(neighbor, tentative_g_score);
+                if !costs.contains_key(&neighbor) || tentative_cost < costs[&neighbor] {
+                    costs.insert(neighbor, tentative_cost);
                     came_from.insert(neighbor, current);
 
                     open_set.push(Node {
                         point: neighbor,
-                        g: tentative_g_score,
-                        h: self.heuristic(&neighbor, &goal),
-                    });
+                        cost: tentative_cost,
+                    })
                 }
             }
         }
     }
 
-    fn name(&self) -> Algorithm {
-        Algorithm::AStar
+    fn name(&self) -> super::Algorithm {
+        Algorithm::Dijkstra
     }
 }

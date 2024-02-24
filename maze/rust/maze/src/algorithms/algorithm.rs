@@ -3,10 +3,15 @@ pub enum Algorithm {
     #[default]
     Backtracking,
     AStar,
+    Dijkstra,
 }
 
 impl Algorithm {
-    pub const ALL: [Algorithm; 2] = [Algorithm::Backtracking, Algorithm::AStar];
+    pub const ALL: [Algorithm; 3] = [
+        Algorithm::Backtracking,
+        Algorithm::AStar,
+        Algorithm::Dijkstra,
+    ];
 }
 
 impl std::fmt::Display for Algorithm {
@@ -17,6 +22,7 @@ impl std::fmt::Display for Algorithm {
             match self {
                 Algorithm::Backtracking => "Backtracking",
                 Algorithm::AStar => "AStar",
+                Algorithm::Dijkstra => "Dijkstra's",
             }
         )
     }
