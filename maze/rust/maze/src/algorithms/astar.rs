@@ -1,20 +1,12 @@
 use std::{
     cmp::Ordering,
     collections::{BinaryHeap, HashMap},
-    sync::{
-        mpsc::{channel, Receiver, Sender},
-        Arc, Mutex,
-    },
-    thread,
-    time::Duration,
+    sync::mpsc::Sender,
 };
 
-use crate::{
-    maze::{Maze, MazeCell},
-    visualization::MazeVisualization,
-};
+use crate::maze::{Maze, MazeCell};
 
-use super::pathfinding::PathfindingAlgorithm;
+use super::{pathfinding::PathfindingAlgorithm, Algorithm};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 struct Point {
@@ -61,10 +53,11 @@ impl AStar {
     fn reconstruct_path(
         came_from: &HashMap<Point, Point>,
         mut current: Point,
-        running_flag: Arc<Mutex<bool>>,
+        // running_flag: Arc<Mutex<bool>>,
     ) -> Vec<Point> {
         let mut path = vec![current];
-        while came_from.contains_key(&current) && *running_flag.lock().unwrap() {
+        while came_from.contains_key(&current) {
+            //&& *running_flag.lock().unwrap() {
             current = *came_from.get(&current).unwrap();
             path.push(current);
         }
@@ -74,114 +67,77 @@ impl AStar {
 }
 
 impl PathfindingAlgorithm for AStar {
-    fn find_path(&mut self) {
-        // let running_flag = Arc::new(Mutex::new(true));
-        // let maze = Arc::new(Mutex::new(visualization.maze.clone()));
+    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
+        let astar = AStar::new(20);
 
-        // let (sender, receiver): (Sender<Maze>, Receiver<Maze>) = channel();
+        // Find entrance and exit coordinates
+        let entrance = maze.get_entrance().unwrap();
+        let exit = maze.get_exit().unwrap();
 
-        // let running_flag_clone = Arc::clone(&running_flag);
-        // let handle = thread::spawn(move || {
-        //     let mut maze = maze.lock().unwrap();
-        //     let astar = AStar::new(20);
+        let start = Point {
+            x: entrance.0,
+            y: entrance.1,
+        };
+        let goal = Point {
+            x: exit.0,
+            y: exit.1,
+        };
 
-        //     // Find entrance and exit coordinates
-        //     let entrance = maze.get_entrance().unwrap();
-        //     let exit = maze.get_exit().unwrap();
+        let mut open_set = BinaryHeap::new();
+        let mut came_from: HashMap<Point, Point> = HashMap::new();
+        let mut g_scores: HashMap<Point, u32> = HashMap::new();
 
-        //     let start = Point {
-        //         x: entrance.0,
-        //         y: entrance.1,
-        //     };
-        //     let goal = Point {
-        //         x: exit.0,
-        //         y: exit.1,
-        //     };
+        open_set.push(Node {
+            point: start,
+            g: 0,
+            h: astar.heuristic(&start, &goal),
+        });
+        g_scores.insert(start, 0);
 
-        //     let mut open_set = BinaryHeap::new();
-        //     let mut came_from: HashMap<Point, Point> = HashMap::new();
-        //     let mut g_scores: HashMap<Point, u32> = HashMap::new();
+        while let Some(current_node) = open_set.pop() {
+            let current = current_node.point;
 
-        //     open_set.push(Node {
-        //         point: start,
-        //         g: 0,
-        //         h: astar.heuristic(&start, &goal),
-        //     });
-        //     g_scores.insert(start, 0);
+            if current == goal {
+                let path = AStar::reconstruct_path(&came_from, current);
+                for point in path.iter().skip(1) {
+                    maze.set_cell(point.x, point.y, MazeCell::FinalPath);
 
-        //     while let Some(current_node) = open_set.pop() {
-        //         let current = current_node.point;
+                    sender
+                        .send(maze.clone())
+                        .expect("Failed to send maze to the main thread");
+                }
+                // *running_flag_clone.lock().unwrap() = false;
+            }
 
-        //         if current == goal {
-        //             let path = AStar::reconstruct_path(
-        //                 &came_from,
-        //                 current,
-        //                 Arc::clone(&running_flag_clone),
-        //             );
-        //             for point in path.iter().skip(1) {
-        //                 maze.set_cell(point.x, point.y, MazeCell::FinalPath);
+            for (dx, dy) in &[(0, 1), (1, 0), (0, -1), (-1, 0)] {
+                let neighbor = Point {
+                    x: (current.x as i32 + dx) as usize,
+                    y: (current.y as i32 + dy) as usize,
+                };
 
-        //                 sender
-        //                     .send(maze.clone())
-        //                     .expect("Failed to send maze to the main thread");
-        //             }
-        //             *running_flag_clone.lock().unwrap() = false;
-        //         }
+                if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
+                    || maze.get_cell(neighbor.x, neighbor.y) == MazeCell::Wall
+                {
+                    continue;
+                }
 
-        //         for (dx, dy) in &[(0, 1), (1, 0), (0, -1), (-1, 0)] {
-        //             let neighbor = Point {
-        //                 x: (current.x as i32 + dx) as usize,
-        //                 y: (current.y as i32 + dy) as usize,
-        //             };
+                let tentative_g_score = g_scores[&current] + 1;
 
-        //             if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-        //                 || maze.get_cell(neighbor.x, neighbor.y) == MazeCell::Wall
-        //             {
-        //                 continue;
-        //             }
+                if !g_scores.contains_key(&neighbor) || tentative_g_score < g_scores[&neighbor] {
+                    g_scores.insert(neighbor, tentative_g_score);
+                    came_from.insert(neighbor, current);
 
-        //             let tentative_g_score = g_scores[&current] + 1;
-
-        //             if !g_scores.contains_key(&neighbor) || tentative_g_score < g_scores[&neighbor]
-        //             {
-        //                 g_scores.insert(neighbor, tentative_g_score);
-        //                 came_from.insert(neighbor, current);
-
-        //                 open_set.push(Node {
-        //                     point: neighbor,
-        //                     g: tentative_g_score,
-        //                     h: astar.heuristic(&neighbor, &goal),
-        //                 });
-        //             }
-        //         }
-        //     }
-        // });
-
-        // while let Ok(recieved_maze) = receiver.recv() {
-        //     if visualization.rl.window_should_close() {
-        //         *running_flag.lock().unwrap() = false;
-        //         return false;
-        //     }
-
-        //     // Update visualization with the new maze
-        //     visualization.set_maze(&recieved_maze);
-
-        //     visualization.visualize(self.name());
-
-        //     thread::sleep(Duration::from_millis(self.visualization_delay));
-        // }
-
-        // // Check for potential errors
-        // if let Err(err) = receiver.recv() {
-        //     eprintln!("Error receiving maze: {}", err);
-        // }
-
-        // handle.join().expect("Handle join error");
-
-        // false
+                    open_set.push(Node {
+                        point: neighbor,
+                        g: tentative_g_score,
+                        h: astar.heuristic(&neighbor, &goal),
+                    });
+                }
+            }
+        }
     }
 
-    fn name(&self) -> &str {
-        "A*"
+    fn name(&self) -> Algorithm {
+        Algorithm::AStar
     }
 }
