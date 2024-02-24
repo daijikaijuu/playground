@@ -1,53 +1,40 @@
 use std::{
-    collections::{BinaryHeap, HashMap},
+    collections::{HashMap, HashSet, VecDeque},
     sync::mpsc::Sender,
 };
 
-use crate::maze::{Maze, MazeCell};
+use crate::maze::MazeCell;
 
 use super::{Algorithm, PathfindingAlgorithm, Point};
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct Node {
-    point: Point,
-    cost: u32,
-}
+pub struct BFS;
 
-impl Ord for Node {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        other.cost.cmp(&self.cost)
-    }
-}
-
-impl PartialOrd for Node {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-pub struct Dijkstra;
-
-impl Dijkstra {
+impl BFS {
     pub fn new() -> Self {
-        Dijkstra
+        BFS {}
     }
-}
 
-impl Dijkstra {
     fn reconstruct_path(came_from: &HashMap<Point, Point>, mut current: Point) -> Vec<Point> {
-        let mut path = vec![current];
-        while came_from.contains_key(&current) {
-            current = *came_from.get(&current).unwrap();
-            path.push(current);
+        let mut path = Vec::new();
+        let mut visited = HashSet::new();
+
+        while visited.insert(current) {
+            if let Some(&prev) = came_from.get(&current) {
+                path.push(current);
+                current = prev;
+            } else {
+                break; // Break the loop if current point has no predecessor
+            }
         }
+
         path.reverse();
         path
     }
 }
 
-impl PathfindingAlgorithm for Dijkstra {
-    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
-        // Find entrance and exit coordinates
+impl PathfindingAlgorithm for BFS {
+    fn find_path(&mut self, maze: &mut crate::maze::Maze, sender: &Sender<crate::maze::Maze>) {
+        // Find entrance and exist coordinates
         let entrance = maze.get_entrance().expect("Cannot find entrance point");
         let exit = maze.get_exit().expect("Cannot find exit point");
 
@@ -60,18 +47,12 @@ impl PathfindingAlgorithm for Dijkstra {
             y: exit.1,
         };
 
-        let mut open_set = BinaryHeap::new();
+        let mut queue = VecDeque::new();
         let mut came_from: HashMap<Point, Point> = HashMap::new();
-        let mut costs: HashMap<Point, u32> = HashMap::new();
 
-        open_set.push(Node {
-            point: start,
-            cost: 0,
-        });
-        costs.insert(start, 0);
+        queue.push_back(start);
 
-        while let Some(current_node) = open_set.pop() {
-            let current = current_node.point;
+        while let Some(current) = queue.pop_front() {
             maze.set_cell(current.x, current.y, MazeCell::Visited);
             sender.send(maze.clone()).unwrap();
 
@@ -81,7 +62,7 @@ impl PathfindingAlgorithm for Dijkstra {
                 for point in path.iter().skip(1) {
                     maze.set_cell(point.x, point.y, MazeCell::FinalPath);
 
-                    // Send the updated maze to the mazin thread
+                    // Send the updated maze to the main thread
                     sender
                         .send(maze.clone())
                         .expect("Failed to send maze to the main thread");
@@ -97,26 +78,18 @@ impl PathfindingAlgorithm for Dijkstra {
 
                 if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
                     || maze.get_cell(neighbor.x, neighbor.y) == MazeCell::Wall
+                    || came_from.contains_key(&neighbor)
                 {
                     continue;
                 }
 
-                let tentative_cost = costs[&current] + 1;
-
-                if !costs.contains_key(&neighbor) || tentative_cost < costs[&neighbor] {
-                    costs.insert(neighbor, tentative_cost);
-                    came_from.insert(neighbor, current);
-
-                    open_set.push(Node {
-                        point: neighbor,
-                        cost: tentative_cost,
-                    })
-                }
+                came_from.insert(neighbor, current);
+                queue.push_back(neighbor);
             }
         }
     }
 
     fn name(&self) -> super::Algorithm {
-        Algorithm::Dijkstra
+        Algorithm::BFS
     }
 }

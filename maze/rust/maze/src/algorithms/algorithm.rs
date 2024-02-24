@@ -1,15 +1,17 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Algorithm {
+    AStar,
     #[default]
     Backtracking,
-    AStar,
+    BFS,
     Dijkstra,
 }
 
 impl Algorithm {
-    pub const ALL: [Algorithm; 3] = [
-        Algorithm::Backtracking,
+    pub const ALL: [Algorithm; 4] = [
         Algorithm::AStar,
+        Algorithm::Backtracking,
+        Algorithm::BFS,
         Algorithm::Dijkstra,
     ];
 }
@@ -20,8 +22,9 @@ impl std::fmt::Display for Algorithm {
             f,
             "{}",
             match self {
-                Algorithm::Backtracking => "Backtracking",
                 Algorithm::AStar => "AStar",
+                Algorithm::Backtracking => "Backtracking",
+                Algorithm::BFS => "Breadth-First Search (BFS)",
                 Algorithm::Dijkstra => "Dijkstra's",
             }
         )

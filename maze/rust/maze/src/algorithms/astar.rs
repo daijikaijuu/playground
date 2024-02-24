@@ -84,6 +84,8 @@ impl PathfindingAlgorithm for AStar {
 
         while let Some(current_node) = open_set.pop() {
             let current = current_node.point;
+            maze.set_cell(current.x, current.y, MazeCell::Visited);
+            sender.send(maze.clone()).unwrap();
 
             if current == goal {
                 let path = AStar::reconstruct_path(&came_from, current);
@@ -94,7 +96,7 @@ impl PathfindingAlgorithm for AStar {
                         .send(maze.clone())
                         .expect("Failed to send maze to the main thread");
                 }
-                // *running_flag_clone.lock().unwrap() = false;
+                break;
             }
 
             for (dx, dy) in &[(0, 1), (1, 0), (0, -1), (-1, 0)] {

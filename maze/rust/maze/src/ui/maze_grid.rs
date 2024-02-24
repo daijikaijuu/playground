@@ -15,7 +15,7 @@ use iced::{
 };
 
 use crate::{
-    algorithms::{AStar, Algorithm, Backtracking, Dijkstra, PathfindingAlgorithm},
+    algorithms::{AStar, Algorithm, Backtracking, Dijkstra, PathfindingAlgorithm, BFS},
     maze::{Maze, MazeGenerator},
 };
 
@@ -90,13 +90,17 @@ impl MazeGrid {
         let selected_algorithm = self.selected_algorithm;
 
         let handle = thread::spawn(move || match selected_algorithm {
+            Algorithm::AStar => {
+                let mut astar = AStar::new();
+                astar.find_path(&mut maze, &sender);
+            }
             Algorithm::Backtracking => {
                 let mut backtracking = Backtracking::new();
                 backtracking.find_path(&mut maze, &sender);
             }
-            Algorithm::AStar => {
-                let mut astar = AStar::new();
-                astar.find_path(&mut maze, &sender);
+            Algorithm::BFS => {
+                let mut bfs = BFS::new();
+                bfs.find_path(&mut maze, &sender);
             }
             Algorithm::Dijkstra => {
                 let mut dijktra = Dijkstra::new();
