@@ -15,7 +15,7 @@ use iced::{
 };
 
 use crate::{
-    algorithms::{Algorithm, Backtracking, PathfindingAlgorithm},
+    algorithms::{AStar, Algorithm, Backtracking, PathfindingAlgorithm},
     maze::{Maze, MazeGenerator},
 };
 
@@ -56,6 +56,8 @@ impl MazeGrid {
         match message {
             Message::SelectAlgorithm(algorithm) => {
                 self.selected_algorithm = algorithm;
+                self.grid_cache.clear();
+                self.animation_queue.clear();
             }
             Message::GenerateMaze => self.generate_maze(),
             Message::Ticked => {}
@@ -85,9 +87,17 @@ impl MazeGrid {
 
         let mut maze = self.maze.clone();
 
-        let handle = thread::spawn(move || {
-            let mut backtracking = Backtracking::new();
-            backtracking.find_path(&mut maze, &sender);
+        let selected_algorithm = self.selected_algorithm;
+
+        let handle = thread::spawn(move || match selected_algorithm {
+            Algorithm::Backtracking => {
+                let mut backtracking = Backtracking::new();
+                backtracking.find_path(&mut maze, &sender);
+            }
+            Algorithm::AStar => {
+                let mut astar = AStar::new();
+                astar.find_path(&mut maze, &sender);
+            }
         });
 
         while let Ok(recieved_maze) = reciever.recv() {

@@ -34,15 +34,11 @@ impl PartialOrd for Node {
     }
 }
 
-pub struct AStar {
-    pub visualization_delay: u64,
-}
+pub struct AStar {}
 
 impl AStar {
-    pub fn new(visualization_delay: u64) -> Self {
-        AStar {
-            visualization_delay,
-        }
+    pub fn new() -> Self {
+        AStar {}
     }
 
     fn heuristic(&self, current: &Point, goal: &Point) -> u32 {
@@ -68,8 +64,6 @@ impl AStar {
 
 impl PathfindingAlgorithm for AStar {
     fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
-        let astar = AStar::new(20);
-
         // Find entrance and exit coordinates
         let entrance = maze.get_entrance().unwrap();
         let exit = maze.get_exit().unwrap();
@@ -90,7 +84,7 @@ impl PathfindingAlgorithm for AStar {
         open_set.push(Node {
             point: start,
             g: 0,
-            h: astar.heuristic(&start, &goal),
+            h: self.heuristic(&start, &goal),
         });
         g_scores.insert(start, 0);
 
@@ -130,7 +124,7 @@ impl PathfindingAlgorithm for AStar {
                     open_set.push(Node {
                         point: neighbor,
                         g: tentative_g_score,
-                        h: astar.heuristic(&neighbor, &goal),
+                        h: self.heuristic(&neighbor, &goal),
                     });
                 }
             }
