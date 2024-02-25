@@ -2,25 +2,32 @@ use std::{collections::HashSet, sync::mpsc::Sender};
 
 use crate::maze::{Maze, MazeCell};
 
-use super::{Algorithm, PathfindingAlgorithm, Point, MOVEMENTS};
+use super::{
+    Algorithm, PathfindingAlgorithm, PathfindingResult, PathfindingStats, Point, MOVEMENTS,
+};
 
-pub struct DFS;
+pub struct DFS {
+    stats: PathfindingStats,
+}
 
 impl DFS {
     pub fn new() -> Self {
-        DFS
+        DFS {
+            stats: PathfindingStats::default(),
+        }
     }
 
     fn depth_first_search(
-        &self,
+        &mut self,
         current: Point,
         goal: Point,
         maze: &mut Maze,
-        sender: &Sender<Maze>,
+        sender: &Sender<PathfindingResult>,
         visited: &mut HashSet<Point>,
     ) -> bool {
         visited.insert(current);
         maze.set_cell(current.x, current.y, MazeCell::FinalPath);
+        self.stats.new_step();
 
         if current == goal {
             return true;
@@ -39,7 +46,12 @@ impl DFS {
                 })
                 && maze.get_cell(neighbor.x, neighbor.y) != MazeCell::Wall
             {
-                sender.send(maze.clone()).unwrap();
+                sender
+                    .send(PathfindingResult {
+                        maze: maze.clone(),
+                        stats: None,
+                    })
+                    .unwrap();
 
                 // Mark the final path
                 maze.set_cell(neighbor.x, neighbor.y, MazeCell::FinalPath);
@@ -67,7 +79,7 @@ impl DFS {
 }
 
 impl PathfindingAlgorithm for DFS {
-    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
+    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<PathfindingResult>) {
         let entrance = maze.get_entrance().expect("Cannot find entrance");
         let exit = maze.get_exit().expect("Cannot find exit");
 
@@ -89,5 +101,9 @@ impl PathfindingAlgorithm for DFS {
 
     fn name(&self) -> super::Algorithm {
         Algorithm::DFS
+    }
+
+    fn get_stats(&self) -> Option<PathfindingStats> {
+        None
     }
 }

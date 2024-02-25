@@ -5,7 +5,7 @@ use std::{
 
 use crate::maze::{Maze, MazeCell};
 
-use super::{Algorithm, PathfindingAlgorithm, Point, MOVEMENTS};
+use super::{Algorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct Node {
@@ -46,7 +46,7 @@ impl Dijkstra {
 }
 
 impl PathfindingAlgorithm for Dijkstra {
-    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
+    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<PathfindingResult>) {
         // Find entrance and exit coordinates
         let entrance = maze.get_entrance().expect("Cannot find entrance point");
         let exit = maze.get_exit().expect("Cannot find exit point");
@@ -73,7 +73,12 @@ impl PathfindingAlgorithm for Dijkstra {
         while let Some(current_node) = open_set.pop() {
             let current = current_node.point;
             maze.set_cell(current.x, current.y, MazeCell::Visited);
-            sender.send(maze.clone()).unwrap();
+            sender
+                .send(PathfindingResult {
+                    stats: None,
+                    maze: maze.clone(),
+                })
+                .unwrap();
 
             if current == goal {
                 // Reached the exit, reconstruct and visualize the path
@@ -83,7 +88,10 @@ impl PathfindingAlgorithm for Dijkstra {
 
                     // Send the updated maze to the mazin thread
                     sender
-                        .send(maze.clone())
+                        .send(PathfindingResult {
+                            stats: None,
+                            maze: maze.clone(),
+                        })
                         .expect("Failed to send maze to the main thread");
                 }
                 break;
@@ -118,5 +126,9 @@ impl PathfindingAlgorithm for Dijkstra {
 
     fn name(&self) -> super::Algorithm {
         Algorithm::Dijkstra
+    }
+
+    fn get_stats(&self) -> Option<super::PathfindingStats> {
+        None
     }
 }

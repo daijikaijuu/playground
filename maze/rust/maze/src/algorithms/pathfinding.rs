@@ -4,7 +4,26 @@ use crate::maze::Maze;
 
 use super::Algorithm;
 
+#[derive(Default, Debug, Clone, Copy)]
+pub struct PathfindingStats {
+    pub steps: usize,
+}
+
+pub struct PathfindingResult {
+    pub stats: Option<PathfindingStats>,
+    pub maze: Maze,
+}
+
 pub trait PathfindingAlgorithm {
-    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>);
+    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<PathfindingResult>);
+
+    fn get_stats(&self) -> Option<PathfindingStats>;
+
     fn name(&self) -> Algorithm;
+}
+
+impl PathfindingStats {
+    pub fn new_step(&mut self) {
+        self.steps += 1;
+    }
 }

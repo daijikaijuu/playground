@@ -4,18 +4,25 @@ use rand::seq::SliceRandom;
 
 use crate::maze::{Maze, MazeCell};
 
-use super::{pathfinding::PathfindingAlgorithm, Algorithm, MOVEMENTS};
+use super::{
+    pathfinding::PathfindingAlgorithm, Algorithm, PathfindingResult, PathfindingStats, MOVEMENTS,
+};
 
-pub struct Backtracking {}
+pub struct Backtracking {
+    stats: PathfindingStats,
+}
 
 impl Backtracking {
     pub fn new() -> Self {
-        Backtracking {}
+        Backtracking {
+            stats: PathfindingStats::default(),
+        }
     }
 
     fn backtrack(
+        &mut self,
         maze: &mut Maze,
-        sender: &Sender<Maze>,
+        sender: &Sender<PathfindingResult>,
         x: usize,
         y: usize,
         exit_x: usize,
@@ -23,9 +30,17 @@ impl Backtracking {
     ) -> bool {
         maze.set_cell(x, y, MazeCell::Visited); // Mark cell as visited
 
+        // Update stats
+        self.stats.new_step();
+
         // If we've reached the exit, stop recursion
         if x == exit_x && y == exit_y {
-            sender.send(maze.clone()).unwrap();
+            sender
+                .send(PathfindingResult {
+                    maze: maze.clone(),
+                    stats: Some(self.stats),
+                })
+                .unwrap();
             return true;
         }
 
@@ -41,19 +56,17 @@ impl Backtracking {
                 && (maze.get_cell(new_x as usize, new_y as usize) == MazeCell::Path
                     || maze.get_cell(new_x as usize, new_y as usize) == MazeCell::Exit)
             {
-                sender.send(maze.clone()).unwrap();
+                sender
+                    .send(PathfindingResult {
+                        maze: maze.clone(),
+                        stats: Some(self.stats),
+                    })
+                    .unwrap();
 
                 // Mark the final path
                 maze.set_cell(x, y, MazeCell::FinalPath);
                 // Mark the path recursively backtrack
-                if Backtracking::backtrack(
-                    maze,
-                    sender,
-                    new_x as usize,
-                    new_y as usize,
-                    exit_x,
-                    exit_y,
-                ) {
+                if self.backtrack(maze, sender, new_x as usize, new_y as usize, exit_x, exit_y) {
                     return true;
                 } else {
                     maze.set_cell(x, y, MazeCell::Visited);
@@ -66,16 +79,20 @@ impl Backtracking {
 }
 
 impl PathfindingAlgorithm for Backtracking {
-    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
+    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<PathfindingResult>) {
         // Reset the maze to its original state
         // Find entrance and exit coordinated
         let entrance = maze.get_entrance().expect("Cannot find entrance");
         let exit = maze.get_exit().expect("Cannot find exit");
 
-        Backtracking::backtrack(maze, sender, entrance.0, entrance.1, exit.0, exit.1);
+        self.backtrack(maze, sender, entrance.0, entrance.1, exit.0, exit.1);
     }
 
     fn name(&self) -> Algorithm {
         Algorithm::Backtracking
+    }
+
+    fn get_stats(&self) -> Option<PathfindingStats> {
+        Some(self.stats)
     }
 }

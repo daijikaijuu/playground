@@ -6,7 +6,7 @@ use std::{
 
 use crate::maze::{Maze, MazeCell};
 
-use super::{pathfinding::PathfindingAlgorithm, Algorithm, Point, MOVEMENTS};
+use super::{pathfinding::PathfindingAlgorithm, Algorithm, PathfindingResult, Point, MOVEMENTS};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct Node {
@@ -57,7 +57,7 @@ impl AStar {
 }
 
 impl PathfindingAlgorithm for AStar {
-    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<Maze>) {
+    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<PathfindingResult>) {
         // Find entrance and exit coordinates
         let entrance = maze.get_entrance().unwrap();
         let exit = maze.get_exit().unwrap();
@@ -85,7 +85,12 @@ impl PathfindingAlgorithm for AStar {
         while let Some(current_node) = open_set.pop() {
             let current = current_node.point;
             maze.set_cell(current.x, current.y, MazeCell::Visited);
-            sender.send(maze.clone()).unwrap();
+            sender
+                .send(PathfindingResult {
+                    maze: maze.clone(),
+                    stats: self.get_stats(),
+                })
+                .unwrap();
 
             if current == goal {
                 let path = AStar::reconstruct_path(&came_from, current);
@@ -93,7 +98,10 @@ impl PathfindingAlgorithm for AStar {
                     maze.set_cell(point.x, point.y, MazeCell::FinalPath);
 
                     sender
-                        .send(maze.clone())
+                        .send(PathfindingResult {
+                            maze: maze.clone(),
+                            stats: None,
+                        })
                         .expect("Failed to send maze to the main thread");
                 }
                 break;
@@ -129,5 +137,9 @@ impl PathfindingAlgorithm for AStar {
 
     fn name(&self) -> Algorithm {
         Algorithm::AStar
+    }
+
+    fn get_stats(&self) -> Option<super::PathfindingStats> {
+        None
     }
 }

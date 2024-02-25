@@ -6,16 +6,19 @@ use std::{
 };
 
 use iced::{
-    mouse,
+    alignment, mouse,
     widget::{
         canvas::{self, Cache, Geometry, Path, Stroke},
-        Canvas,
+        column, row, text, Canvas,
     },
     Color, Element, Length, Point, Rectangle, Renderer, Size, Theme,
 };
 
 use crate::{
-    algorithms::{AStar, Algorithm, Backtracking, Dijkstra, PathfindingAlgorithm, BFS, DFS},
+    algorithms::{
+        AStar, Algorithm, Backtracking, Dijkstra, PathfindingAlgorithm, PathfindingResult,
+        PathfindingStats, BFS, DFS,
+    },
     maze::{Maze, MazeGenerator},
 };
 
@@ -25,13 +28,13 @@ pub struct MazeGrid {
     grid_cache: Cache,
     animation_queue: VecDeque<Maze>,
     pub selected_algorithm: Algorithm,
+    pathfinding_stats: Option<PathfindingStats>,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
     GenerateMaze,
     SelectAlgorithm(Algorithm),
-    Ticked,
     Tick,
 }
 
@@ -42,14 +45,22 @@ impl MazeGrid {
             grid_cache: Cache::default(),
             selected_algorithm: Algorithm::default(),
             animation_queue: VecDeque::new(),
+            pathfinding_stats: None,
         }
     }
 
     pub fn view(&self) -> Element<Message> {
-        Canvas::new(self)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
+        let canvas = Canvas::new(self).width(Length::Fill).height(Length::Fill);
+
+        // Stats
+        if let Some(st) = self.pathfinding_stats {
+            let steps = text(format!("Steps: {}", st.steps))
+                .horizontal_alignment(alignment::Horizontal::Left);
+            let stats = column!(steps);
+            row![canvas, stats].into()
+        } else {
+            canvas.into()
+        }
     }
 
     pub fn update(&mut self, message: Message) {
@@ -60,7 +71,6 @@ impl MazeGrid {
                 self.animation_queue.clear();
             }
             Message::GenerateMaze => self.generate_maze(),
-            Message::Ticked => {}
             Message::Tick => {
                 self.tick();
             }
@@ -79,11 +89,13 @@ impl MazeGrid {
 
     pub fn start(&mut self) {
         // Reset maze
+        self.pathfinding_stats = None;
         self.grid_cache.clear();
         self.animation_queue.clear();
         self.maze = self.maze.from_original();
 
-        let (sender, reciever): (Sender<Maze>, Receiver<Maze>) = channel();
+        let (sender, reciever): (Sender<PathfindingResult>, Receiver<PathfindingResult>) =
+            channel();
 
         let mut maze = self.maze.clone();
 
@@ -112,9 +124,10 @@ impl MazeGrid {
             }
         });
 
-        while let Ok(recieved_maze) = reciever.recv() {
-            self.maze = recieved_maze.clone();
-            self.animation_queue.push_back(recieved_maze);
+        while let Ok(recieved_result) = reciever.recv() {
+            self.maze = recieved_result.maze.clone();
+            self.animation_queue.push_back(recieved_result.maze);
+            self.pathfinding_stats = recieved_result.stats;
         }
 
         handle.join().expect("Failed to join thread");

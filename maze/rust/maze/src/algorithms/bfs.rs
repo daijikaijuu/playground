@@ -5,7 +5,7 @@ use std::{
 
 use crate::maze::MazeCell;
 
-use super::{Algorithm, PathfindingAlgorithm, Point, MOVEMENTS};
+use super::{Algorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS};
 
 pub struct BFS;
 
@@ -33,7 +33,7 @@ impl BFS {
 }
 
 impl PathfindingAlgorithm for BFS {
-    fn find_path(&mut self, maze: &mut crate::maze::Maze, sender: &Sender<crate::maze::Maze>) {
+    fn find_path(&mut self, maze: &mut crate::maze::Maze, sender: &Sender<PathfindingResult>) {
         // Find entrance and exist coordinates
         let entrance = maze.get_entrance().expect("Cannot find entrance point");
         let exit = maze.get_exit().expect("Cannot find exit point");
@@ -54,7 +54,12 @@ impl PathfindingAlgorithm for BFS {
 
         while let Some(current) = queue.pop_front() {
             maze.set_cell(current.x, current.y, MazeCell::Visited);
-            sender.send(maze.clone()).unwrap();
+            sender
+                .send(PathfindingResult {
+                    maze: maze.clone(),
+                    stats: None,
+                })
+                .unwrap();
 
             if current == goal {
                 // Reached the exit, reconstruct and visualize the path
@@ -64,7 +69,10 @@ impl PathfindingAlgorithm for BFS {
 
                     // Send the updated maze to the main thread
                     sender
-                        .send(maze.clone())
+                        .send(PathfindingResult {
+                            maze: maze.clone(),
+                            stats: None,
+                        })
                         .expect("Failed to send maze to the main thread");
                 }
                 break;
@@ -91,5 +99,9 @@ impl PathfindingAlgorithm for BFS {
 
     fn name(&self) -> super::Algorithm {
         Algorithm::BFS
+    }
+
+    fn get_stats(&self) -> Option<super::PathfindingStats> {
+        None
     }
 }
