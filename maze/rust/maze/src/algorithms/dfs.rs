@@ -2,7 +2,7 @@ use std::{collections::HashSet, sync::mpsc::Sender};
 
 use crate::maze::{Maze, MazeCell};
 
-use super::{PathfindingAlgorithm, Point, MOVEMENTS};
+use super::{Algorithm, PathfindingAlgorithm, Point, MOVEMENTS};
 
 pub struct DFS;
 
@@ -88,6 +88,6 @@ impl PathfindingAlgorithm for DFS {
     }
 
     fn name(&self) -> super::Algorithm {
-        todo!()
+        Algorithm::DFS
     }
 }
