@@ -56,7 +56,7 @@ impl MazeGrid {
         if let Some(st) = self.pathfinding_stats {
             let steps = text(format!("Steps: {}", st.steps))
                 .horizontal_alignment(alignment::Horizontal::Left);
-            let stats = column!(steps);
+            let stats = column!(steps).width(200);
             row![canvas, stats].into()
         } else {
             canvas.into()

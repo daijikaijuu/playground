@@ -119,18 +119,3 @@ fn main() -> iced::Result {
         ..Settings::default()
     })
 }
-// // Backtracking algorithm
-// let mut maze_visualization =
-//     MazeVisualization::new(ROWS, COLS, &mut self.rl, &self.thread);
-// let mut backtracking_algorithm = Backtracking::new();
-// if backtracking_algorithm.find_path(&mut maze_visualization) {}
-
-// thread::sleep(Duration::from_secs(2));
-
-// // AStar algorithm
-// let mut maze_visualization =
-//     MazeVisualization::new(ROWS, COLS, &mut self.rl, &self.thread);
-// let mut astar_algorithm = AStar::new(20);
-// if astar_algorithm.find_path(&mut maze_visualization) {}
-
-// maze_visualization.visualize(astar_algorithm.name());
