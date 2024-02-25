@@ -4,7 +4,7 @@ use rand::seq::SliceRandom;
 
 use crate::maze::{Maze, MazeCell};
 
-use super::{pathfinding::PathfindingAlgorithm, Algorithm};
+use super::{pathfinding::PathfindingAlgorithm, Algorithm, MOVEMENTS};
 
 pub struct Backtracking {}
 
@@ -29,7 +29,7 @@ impl Backtracking {
             return true;
         }
 
-        let directions = &[(0, 1), (1, 0), (0, -1), (-1, 0)];
+        let directions = &MOVEMENTS;
         let mut rng = rand::thread_rng();
         let shuffled_directions = directions.choose_multiple(&mut rng, directions.len());
 

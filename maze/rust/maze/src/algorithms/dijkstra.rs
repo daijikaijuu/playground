@@ -5,7 +5,7 @@ use std::{
 
 use crate::maze::{Maze, MazeCell};
 
-use super::{Algorithm, PathfindingAlgorithm, Point};
+use super::{Algorithm, PathfindingAlgorithm, Point, MOVEMENTS};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct Node {
@@ -89,7 +89,7 @@ impl PathfindingAlgorithm for Dijkstra {
                 break;
             }
 
-            for (dx, dy) in &[(0, 1), (1, 0), (0, -1), (-1, 0)] {
+            for (dx, dy) in &MOVEMENTS {
                 let neighbor = Point {
                     x: (current.x as i32 + dx) as usize,
                     y: (current.y as i32 + dy) as usize,

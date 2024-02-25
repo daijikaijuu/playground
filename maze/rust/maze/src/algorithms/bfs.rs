@@ -5,7 +5,7 @@ use std::{
 
 use crate::maze::MazeCell;
 
-use super::{Algorithm, PathfindingAlgorithm, Point};
+use super::{Algorithm, PathfindingAlgorithm, Point, MOVEMENTS};
 
 pub struct BFS;
 
@@ -70,7 +70,7 @@ impl PathfindingAlgorithm for BFS {
                 break;
             }
 
-            for (dx, dy) in &[(0, 1), (1, 0), (0, -1), (-1, 0)] {
+            for (dx, dy) in &MOVEMENTS {
                 let neighbor = Point {
                     x: (current.x as i32 + dx) as usize,
                     y: (current.y as i32 + dy) as usize,

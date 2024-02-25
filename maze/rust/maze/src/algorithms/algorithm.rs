@@ -4,14 +4,16 @@ pub enum Algorithm {
     #[default]
     Backtracking,
     BFS,
+    DFS,
     Dijkstra,
 }
 
 impl Algorithm {
-    pub const ALL: [Algorithm; 4] = [
+    pub const ALL: [Algorithm; 5] = [
         Algorithm::AStar,
         Algorithm::Backtracking,
         Algorithm::BFS,
+        Algorithm::DFS,
         Algorithm::Dijkstra,
     ];
 }
@@ -25,8 +27,11 @@ impl std::fmt::Display for Algorithm {
                 Algorithm::AStar => "AStar",
                 Algorithm::Backtracking => "Backtracking",
                 Algorithm::BFS => "Breadth-First Search (BFS)",
+                Algorithm::DFS => "Depth-First Search (DFS)",
                 Algorithm::Dijkstra => "Dijkstra's",
             }
         )
     }
 }
+
+pub const MOVEMENTS: [(i32, i32); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
