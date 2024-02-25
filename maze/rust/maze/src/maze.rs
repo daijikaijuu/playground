@@ -110,7 +110,23 @@ impl Maze {
             _ => unreachable!(),
         };
 
-        (x, y)
+        // Ensure at least one adjacent point is MazeCell::Path
+        let adjacent_points = [
+            (x, y.wrapping_sub(1)),
+            (x.wrapping_add(1), y),
+            (x, y.wrapping_add(1)),
+            (x.wrapping_sub(1), y),
+        ];
+
+        if adjacent_points
+            .iter()
+            .any(|&(cx, cy)| self.get_cell(cx, cy) == MazeCell::Path)
+        {
+            (x, y)
+        } else {
+            // If no adjacent point is MazeCell::Path, try again
+            self.get_random_boundary_point(rng)
+        }
     }
 }
 
