@@ -14,12 +14,9 @@ use iced::{
     Color, Element, Length, Point, Rectangle, Renderer, Size, Theme,
 };
 
-use crate::{
-    algorithms::{
-        AStar, Algorithm, Backtracking, Dijkstra, PathfindingAlgorithm, PathfindingResult,
-        PathfindingStats, BFS, DFS,
-    },
-    maze::{Maze, MazeGenerator},
+use maze_lib::{
+    algorithms::*,
+    Maze, MazeCell, MazeGenerator,
 };
 
 #[derive(Debug)]
@@ -167,12 +164,12 @@ impl canvas::Program<Message> for MazeGrid {
                         starting_point,
                         size,
                         match self.maze.get_cell(row, col) {
-                            crate::maze::MazeCell::Wall => Color::from_rgb8(100, 100, 100),
-                            crate::maze::MazeCell::Path => Color::from_rgb8(255, 255, 255),
-                            crate::maze::MazeCell::Entrance => Color::from_rgb8(0, 0, 255),
-                            crate::maze::MazeCell::Exit => Color::from_rgb8(255, 0, 0),
-                            crate::maze::MazeCell::Visited => Color::from_rgb8(0, 0, 100),
-                            crate::maze::MazeCell::FinalPath => Color::from_rgb8(100, 155, 255),
+                            MazeCell::Wall => Color::from_rgb8(100, 100, 100),
+                            MazeCell::Path => Color::from_rgb8(255, 255, 255),
+                            MazeCell::Entrance => Color::from_rgb8(0, 0, 255),
+                            MazeCell::Exit => Color::from_rgb8(255, 0, 0),
+                            MazeCell::Visited => Color::from_rgb8(0, 0, 100),
+                            MazeCell::FinalPath => Color::from_rgb8(100, 155, 255),
                         },
                     );
                     frame.stroke(

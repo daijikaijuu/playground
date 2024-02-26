@@ -1,16 +1,16 @@
 use std::time::Duration;
 
-use algorithms::Algorithm;
 use iced::{
     executor, theme, time,
     widget::{button, column, pick_list, row, text, vertical_space},
     window, Application, Command, Settings, Theme,
 };
+
+mod ui;
+
+use maze_lib::algorithms::Algorithm;
 use ui::MazeGrid;
 
-mod algorithms;
-mod maze;
-mod ui;
 
 #[derive(Debug)]
 struct MainWindow {

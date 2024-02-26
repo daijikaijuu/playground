@@ -1,6 +1,7 @@
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
 use rand::Rng;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
@@ -208,7 +209,9 @@ impl MazeGenerator for Maze {
                 if self.is_valid_move(nx, ny) {
                     let neighbor_cell = (nx as usize, ny as usize);
 
-                    if !frontier.contains(&neighbor_cell) && self.get_cell(nx as usize, ny as usize) == MazeCell::Wall {
+                    if !frontier.contains(&neighbor_cell)
+                        && self.get_cell(nx as usize, ny as usize) == MazeCell::Wall
+                    {
                         valid_neighbors.push(neighbor_cell);
                     }
                 }
