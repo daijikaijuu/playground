@@ -23,6 +23,7 @@ pub trait MazeGenerator {
         rng: &mut ThreadRng,
         directions: &[(i32, i32)],
     );
+    fn prims_algorithm(&mut self, start_x: usize, start_y: usize, rng: &mut ThreadRng);
 }
 
 #[derive(Clone, Default)]
@@ -112,10 +113,10 @@ impl Maze {
 
         // Ensure at least one adjacent point is MazeCell::Path
         let adjacent_points = [
-            (x, y.checked_sub(1).unwrap_or(0)),
+            (x, y.saturating_sub(1)),
             (x.wrapping_add(1), y),
             (x, y.wrapping_add(1)),
-            (x.checked_sub(1).unwrap_or(0), y),
+            (x.saturating_sub(1), y),
         ];
 
         if adjacent_points
@@ -184,6 +185,43 @@ impl MazeGenerator for Maze {
 
                     self.depth_first_search(new_x, new_y, rng, directions);
                 }
+            }
+        }
+    }
+
+    fn prims_algorithm(&mut self, start_x: usize, start_y: usize, rng: &mut ThreadRng) {
+        let mut frontier = Vec::new();
+        let initial_cell = (start_x, start_y);
+        frontier.push(initial_cell);
+        self.set_cell(start_x, start_y, MazeCell::Path);
+
+        while !frontier.is_empty() {
+            let current_cell = *frontier.choose(rng).expect("Frontier is empty");
+            frontier.retain(|&cell| cell != current_cell);
+
+            let mut valid_neighbors = Vec::new();
+
+            for &(dx, dy) in &[(0, -2), (0, 2), (-2, 0), (2, 0)] {
+                let nx = current_cell.0 as i32 + dx;
+                let ny = current_cell.1 as i32 + dy;
+
+                if self.is_valid_move(nx, ny) {
+                    let neighbor_cell = (nx as usize, ny as usize);
+
+                    if !frontier.contains(&neighbor_cell) && self.get_cell(nx as usize, ny as usize) == MazeCell::Wall {
+                        valid_neighbors.push(neighbor_cell);
+                    }
+                }
+            }
+
+            if let Some(&new_cell) = valid_neighbors.choose(rng) {
+                let (cx, cy) = current_cell;
+                let (nx, ny) = new_cell;
+
+                self.set_cell(nx, ny, MazeCell::Path);
+                self.set_cell((cx + nx) / 2, (cy + ny) / 2, MazeCell::Path);
+
+                frontier.push(new_cell);
             }
         }
     }
