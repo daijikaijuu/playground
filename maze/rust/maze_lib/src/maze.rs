@@ -1,7 +1,6 @@
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
 use rand::Rng;
-use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
@@ -235,12 +234,12 @@ impl fmt::Debug for Maze {
         for y in 0..self.height {
             for x in 0..self.width {
                 match self.get_cell(x, y) {
-                    MazeCell::Wall => write!(f, "#")?,
-                    MazeCell::Path => write!(f, " ")?,
-                    MazeCell::Entrance => write!(f, ">")?,
-                    MazeCell::Exit => write!(f, "E")?,
-                    MazeCell::Visited => write!(f, "v")?,
-                    MazeCell::FinalPath => write!(f, "F")?,
+                    MazeCell::Wall => write!(f, "██")?,
+                    MazeCell::Path => write!(f, "  ")?,
+                    MazeCell::Entrance => write!(f, " >")?,
+                    MazeCell::Exit => write!(f, " E")?,
+                    MazeCell::Visited => write!(f, " v")?,
+                    MazeCell::FinalPath => write!(f, " F")?,
                 }
             }
             writeln!(f)?;
