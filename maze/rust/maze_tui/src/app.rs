@@ -1,21 +1,32 @@
 use std::io;
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use maze_lib::{Maze, MazeGenerator};
 use ratatui::{
     layout::Alignment,
     style::Stylize,
-    widgets::{block::Title, Block, Borders, Widget},
+    widgets::{block::Title, Block, Borders, Paragraph, Widget},
     Frame,
 };
 
-use crate::tui;
+use crate::{maze_grid::MazeGrid, tui};
 
 #[derive(Debug, Default)]
 pub struct App {
+    maze: Maze,
     exit: bool,
 }
 
 impl App {
+    pub fn new() -> Self {
+        let mut maze = Maze::new(41, 41);
+        maze.generate_maze(1, 1);
+        App {
+            maze,
+            exit: false,
+        }
+    }
+
     pub fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()> {
         while !self.exit {
             terminal.draw(|frame| self.render_frame(frame))?;
@@ -58,7 +69,7 @@ impl Widget for &App {
         let title = Title::from("Maze crawler".bold());
         let block = Block::default()
             .title(title.alignment(Alignment::Center))
-            .borders(Borders::ALL)
-            .render(area, buf);
+            .borders(Borders::ALL).render(area, buf);
+        MazeGrid::new(&self.maze).render(area, buf);
     }
 }
