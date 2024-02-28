@@ -1,5 +1,5 @@
 use maze_lib::Maze;
-use ratatui::{style::{Style, Stylize}, widgets::Widget};
+use ratatui::{layout::Alignment, style::{Style, Stylize}, widgets::{block::Title, Block, Borders, Widget}};
 
 pub struct MazeGrid {
     maze: Maze,
@@ -16,6 +16,11 @@ impl Widget for MazeGrid {
     where
         Self: Sized,
     {
+        let maze_block_title = Title::from("Maze crawler".bold());
+        Block::default()
+            .title(maze_block_title.alignment(Alignment::Center))
+            .borders(Borders::ALL).render(area, buf);
+
         let rows = self.maze.width;
         let cols = self.maze.height;
 
@@ -26,8 +31,8 @@ impl Widget for MazeGrid {
                     maze_lib::MazeCell::Path => ("  ", Style::default().on_black()),
                     maze_lib::MazeCell::Entrance => ("░░", Style::default().blue()),
                     maze_lib::MazeCell::Exit => ("╒╕", Style::default().red()),
-                    maze_lib::MazeCell::Visited => ("  ", Style::default()),
-                    maze_lib::MazeCell::FinalPath => ("  ", Style::default()),
+                    maze_lib::MazeCell::Visited => ("  ", Style::default().on_dark_gray()),
+                    maze_lib::MazeCell::FinalPath => ("  ", Style::default().on_light_green()),
                 };
                 buf.set_string(
                     area.left() + 1 + (col * 2) as u16,

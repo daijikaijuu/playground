@@ -55,6 +55,10 @@ impl Maze {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.cells = self.original_cells.clone();
+    }
+
     pub fn get_entrance(&self) -> Option<(usize, usize)> {
         // Find and return the entrance coordinated
         self.original_cells

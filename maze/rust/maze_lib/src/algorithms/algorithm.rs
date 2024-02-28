@@ -1,4 +1,6 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+use enum_iterator::Sequence;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Sequence)]
 pub enum Algorithm {
     AStar,
     #[default]
