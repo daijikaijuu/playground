@@ -1,18 +1,57 @@
-use std::io::{self, stdout, Stdout};
+use std::{io, panic};
 
-use crossterm::{execute, terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}};
-use ratatui::{backend::CrosstermBackend, Terminal};
+use crossterm::{
+    execute,
+    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use ratatui::{backend::Backend, widgets::Widget, Terminal};
 
-pub type Tui = Terminal<CrosstermBackend<Stdout>>;
+use crate::{
+    app::{App, AppResult},
+    event::EventHandler,
+    ui,
+};
 
-pub fn init() -> io::Result<Tui> {
-    execute!(stdout(), EnterAlternateScreen)?;
-    enable_raw_mode()?;
-    Terminal::new(CrosstermBackend::new(stdout()))
+#[derive(Debug)]
+pub struct Tui<B: Backend> {
+    terminal: Terminal<B>,
+    pub events: EventHandler,
 }
 
-pub fn restore() -> io::Result<()> {
-    execute!(stdout(), LeaveAlternateScreen)?;
-    disable_raw_mode()?;
-    Ok(())
+impl<B: Backend> Tui<B> {
+    pub fn new(terminal: Terminal<B>, events: EventHandler) -> Self {
+        Self { terminal, events }
+    }
+
+    pub fn init(&mut self) -> AppResult<()> {
+        terminal::enable_raw_mode();
+        execute!(io::stdout(), EnterAlternateScreen)?;
+
+        let panic_hook = panic::take_hook();
+        panic::set_hook(Box::new(move |panic| {
+            Self::reset().expect("Failed to reset terminal");
+            panic_hook(panic);
+        }));
+
+        self.terminal.hide_cursor();
+        self.terminal.clear();
+        Ok(())
+    }
+
+    pub fn draw(&mut self, app: &mut App) -> AppResult<()> {
+        self.terminal.draw(|frame| ui::render(app, frame))?;
+        Ok(())
+    }
+
+    fn reset() -> AppResult<()> {
+        terminal::disable_raw_mode()?;
+        crossterm::execute!(io::stdout(), LeaveAlternateScreen)?;
+        Ok(())
+    }
+
+    pub fn exit(&mut self) -> AppResult<()> {
+        Self::reset()?;
+        self.terminal.show_cursor()?;
+        Ok(())
+    }
 }

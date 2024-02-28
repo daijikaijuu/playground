@@ -6,10 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-crossterm = "0.27.0"
+crossterm = { version = "0.27.0", features = ["event-stream"] }
 enum-iterator = "2.0.0"
+futures = "0.3.30"
 ratatui = "0.26.1"
-tokio = "1.36.0"
+tokio = { version = "1.36.0", features = ["full"] }
 
 [dependencies.maze_lib]
 path = "../maze_lib"

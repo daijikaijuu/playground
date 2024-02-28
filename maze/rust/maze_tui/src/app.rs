@@ -1,13 +1,10 @@
 use std::{
     collections::VecDeque,
-    io,
+    error,
     sync::mpsc::{self, Receiver, Sender},
     thread,
-    time::{Duration, Instant},
 };
 
-use crossterm::event::{self, Event, KeyCode, KeyEventKind};
-use enum_iterator::{next_cycle, previous_cycle};
 use maze_lib::{
     algorithms::{self, Algorithm, PathfindingAlgorithm, PathfindingResult},
     Maze, MazeGenerator,
@@ -17,17 +14,18 @@ use ratatui::{
     style::{Color, Style},
     text::Line,
     widgets::{Block, Borders, Paragraph, Widget},
-    Frame,
 };
 
-use crate::{maze_grid::MazeGrid, tui};
+use crate::maze_grid::MazeGrid;
+
+pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 #[derive(Debug, Default)]
 pub struct App {
     maze: Maze,
     selected_algorithm: Algorithm,
     animation_steps: VecDeque<Maze>,
-    exit: bool,
+    pub running: bool,
 }
 
 impl App {
@@ -38,58 +36,15 @@ impl App {
             maze,
             selected_algorithm: Algorithm::default(),
             animation_steps: VecDeque::new(),
-            exit: false,
+            running: true,
         }
     }
 
-    pub fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()> {
-        let mut last_tick = Instant::now();
-        let tick_rate = Duration::from_millis(10);
-
-        while !self.exit {
-            if last_tick.elapsed() >= tick_rate {
-                self.on_tick();
-                println!("Ticked");
-                last_tick = Instant::now();
-            }
-
-            terminal.draw(|frame| self.render_frame(frame))?;
-            self.handle_events()?;
-        }
-        Ok(())
+    pub fn exit(&mut self) {
+        self.running = false;
     }
 
-    fn render_frame(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.size());
-    }
-
-    fn handle_events(&mut self) -> io::Result<()> {
-        match event::read()? {
-            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                self.handle_key_event(key_event)
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-
-    fn handle_key_event(&mut self, key_event: event::KeyEvent) {
-        match key_event.code {
-            KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => self.exit(),
-
-            KeyCode::Up => self.selected_algorithm = previous_cycle(&self.selected_algorithm),
-            KeyCode::Down => self.selected_algorithm = next_cycle(&self.selected_algorithm),
-            KeyCode::Enter => self.find_path(),
-            KeyCode::Char('c') | KeyCode::Char('C') => self.reset_maze(),
-            _ => {}
-        }
-    }
-
-    fn exit(&mut self) {
-        self.exit = true;
-    }
-
-    fn reset_maze(&mut self) {
+    pub fn reset_maze(&mut self) {
         self.animation_steps.clear();
         self.maze = Maze::new(41, 41);
         self.maze.generate_maze(1, 1);
@@ -134,7 +89,7 @@ impl App {
         handle.join().expect("Failed to join thread");
     }
 
-    fn on_tick(&mut self) {
+    fn tick(&mut self) {
         println!("{:?}", self.animation_steps.len());
         if !self.animation_steps.is_empty() {
             self.maze = self.animation_steps.pop_front().unwrap();

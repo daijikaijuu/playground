@@ -5,12 +5,10 @@ use iced::{
     widget::{button, column, pick_list, row, text, vertical_space},
     window, Application, Command, Settings, Theme,
 };
-
 mod ui;
 
 use maze_lib::algorithms::Algorithm;
 use ui::MazeGrid;
-
 
 #[derive(Debug)]
 struct MainWindow {

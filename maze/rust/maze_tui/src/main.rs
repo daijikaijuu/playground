@@ -1,15 +1,32 @@
 use std::io;
 
-use app::App;
+use maze_tui::{
+    app::{App, AppResult},
+    event::{Event, EventHandler},
+    handler::handle_key_events,
+    tui::Tui,
+};
+use ratatui::{backend::CrosstermBackend, Terminal};
 
-mod app;
-mod tui;
-mod maze_grid;
+#[tokio::main]
+async fn main() -> AppResult<()> {
+    let mut app = App::new();
+    let backend = CrosstermBackend::new(io::stdout());
+    let terminal = Terminal::new(backend)?;
+    let events = EventHandler::new(200);
+    let mut tui = Tui::new(terminal, events);
+    tui.init()?;
 
-fn main() -> io::Result<()> {
-    let mut terminal = tui::init()?;
-    let app_result = App::new().run(&mut terminal);
-    tui::restore()?;
-    app_result
+    while app.running {
+        tui.draw(&mut app)?;
+
+        match tui.events.next().await? {
+            Event::Tick => app.tick(),
+            Event::Key(key_event) => handle_key_events(key_event, &mut app)?,
+        }
+    }
+
+    tui.exit()?;
+
+    Ok(())
 }
-
