@@ -1,7 +1,9 @@
 use std::{
+    collections::VecDeque,
     io,
     sync::mpsc::{self, Receiver, Sender},
     thread,
+    time::{Duration, Instant},
 };
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
@@ -24,6 +26,7 @@ use crate::{maze_grid::MazeGrid, tui};
 pub struct App {
     maze: Maze,
     selected_algorithm: Algorithm,
+    animation_steps: VecDeque<Maze>,
     exit: bool,
 }
 
@@ -34,12 +37,22 @@ impl App {
         App {
             maze,
             selected_algorithm: Algorithm::default(),
+            animation_steps: VecDeque::new(),
             exit: false,
         }
     }
 
     pub fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()> {
+        let mut last_tick = Instant::now();
+        let tick_rate = Duration::from_millis(10);
+
         while !self.exit {
+            if last_tick.elapsed() >= tick_rate {
+                self.on_tick();
+                println!("Ticked");
+                last_tick = Instant::now();
+            }
+
             terminal.draw(|frame| self.render_frame(frame))?;
             self.handle_events()?;
         }
@@ -77,11 +90,13 @@ impl App {
     }
 
     fn reset_maze(&mut self) {
+        self.animation_steps.clear();
         self.maze = Maze::new(41, 41);
         self.maze.generate_maze(1, 1);
     }
 
     fn find_path(&mut self) {
+        self.animation_steps.clear();
         self.maze.reset();
 
         let (sender, receiver): (Sender<PathfindingResult>, Receiver<PathfindingResult>) =
@@ -112,11 +127,18 @@ impl App {
             }
         });
 
-        while let Ok(revieved_result) = receiver.recv() {
-            self.maze = revieved_result.maze;
+        while let Ok(recieved_result) = receiver.recv() {
+            self.animation_steps.push_back(recieved_result.maze);
         }
 
         handle.join().expect("Failed to join thread");
+    }
+
+    fn on_tick(&mut self) {
+        println!("{:?}", self.animation_steps.len());
+        if !self.animation_steps.is_empty() {
+            self.maze = self.animation_steps.pop_front().unwrap();
+        }
     }
 }
 

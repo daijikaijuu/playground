@@ -9,6 +9,7 @@ edition = "2021"
 crossterm = "0.27.0"
 enum-iterator = "2.0.0"
 ratatui = "0.26.1"
+tokio = "1.36.0"
 
 [dependencies.maze_lib]
 path = "../maze_lib"
