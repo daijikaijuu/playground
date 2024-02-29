@@ -12,8 +12,8 @@ impl BellmanFord {}
 impl PathfindingAlgorithm for BellmanFord {
     fn find_path(
         &mut self,
-        maze: &mut crate::Maze,
-        sender: &std::sync::mpsc::Sender<PathfindingResult>,
+        maze: &mut Maze,
+        sender: &Sender<PathfindingResult>,
     ) {
         let entrance = maze.get_entrance().expect("Entrance not found");
         let exit = maze.get_exit().expect("Exit not found");
@@ -43,6 +43,8 @@ impl PathfindingAlgorithm for BellmanFord {
             for y in 0..maze.height {
                 for x in 0..maze.width {
                     let current = Point { x, y };
+                    maze.set_cell(x, y, MazeCell::Visited);
+                    sender.send(PathfindingResult { stats: None, maze: maze.clone() }).unwrap();
 
                     for (dx, dy) in &MOVEMENTS {
                         let neighbor = Point {
@@ -58,7 +60,7 @@ impl PathfindingAlgorithm for BellmanFord {
 
                         let weight = 1;
 
-                        let tentative_distance = distance[&current] + weight;
+                        let tentative_distance = distance[&current].saturating_add(weight);
 
                         if tentative_distance < distance[&neighbor] {
                             distance.insert(neighbor, tentative_distance);
@@ -72,7 +74,7 @@ impl PathfindingAlgorithm for BellmanFord {
         // Check for negative cycles
         for y in 0..maze.height {
             for x in 0..maze.width {
-                let current = Point {x, y};
+                let current = Point { x, y };
 
                 for (dx, dy) in &MOVEMENTS {
                     let neighbor = Point {
@@ -88,7 +90,7 @@ impl PathfindingAlgorithm for BellmanFord {
 
                     let weight = 1;
 
-                    let tentative_distance = distance[&current] + weight;
+                    let tentative_distance = distance[&current].saturating_add(weight);
 
                     if tentative_distance < distance[&neighbor] {
                         return;
@@ -112,10 +114,12 @@ impl PathfindingAlgorithm for BellmanFord {
         for point in path.iter().skip(1) {
             maze.set_cell(point.x, point.y, MazeCell::FinalPath);
 
-            sender.send(PathfindingResult {
-                stats: None,
-                maze: maze.clone()
-            }).expect("Failed to send pathfinding result");
+            sender
+                .send(PathfindingResult {
+                    stats: None,
+                    maze: maze.clone(),
+                })
+                .expect("Failed to send pathfinding result");
         }
     }
 
