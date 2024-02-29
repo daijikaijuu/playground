@@ -7,14 +7,74 @@ use super::{PathfindingAlgorithm, PathfindingResult, Point};
 #[derive(Default)]
 pub struct BellmanFord;
 
-impl BellmanFord {}
-
-impl PathfindingAlgorithm for BellmanFord {
-    fn find_path(
-        &mut self,
+impl BellmanFord {
+    fn relax_edges(
+        current: Point,
+        neighbor: Point,
+        goal: Point,
         maze: &mut Maze,
+        distance: &mut HashMap<Point, i32>,
+        predecessor: &mut HashMap<Point, Point>,
+        sender: &Sender<PathfindingResult>,
+        optimal_route_found: &mut bool,
+    ) {
+        let weight = 1; // Assuming uniform edge weights
+        let tentative_distance = distance[&current].saturating_add(weight);
+
+        if tentative_distance < distance[&neighbor] {
+            distance.insert(neighbor, tentative_distance);
+            predecessor.insert(neighbor, current);
+
+            // Visualize the update by marking the cell as Visited ans sending the updated maze
+            maze.set_cell(neighbor.x, neighbor.y, MazeCell::Visited);
+            sender
+                .send(PathfindingResult {
+                    stats: None,
+                    maze: maze.clone(),
+                })
+                .expect("Failed to send maze to the main thread");
+
+            if neighbor == goal {
+                *optimal_route_found = true;
+            }
+        }
+    }
+
+    fn reconstruct_path(
+        &mut self,
+        start: Point,
+        goal: Point,
+        maze: &mut Maze,
+        predecessor: &mut HashMap<Point, Point>,
         sender: &Sender<PathfindingResult>,
     ) {
+        // Reconstruct the path
+        let mut current = goal;
+        let mut path = Vec::new();
+
+        while let Some(&pred) = predecessor.get(&current) {
+            path.push(current);
+            current = pred;
+        }
+
+        path.push(start);
+        path.reverse();
+
+        for point in path.iter().skip(1) {
+            maze.set_cell(point.x, point.y, MazeCell::FinalPath);
+
+            sender
+                .send(PathfindingResult {
+                    stats: None,
+                    maze: maze.clone(),
+                })
+                .expect("Failed to send pathfinding result");
+        }
+    }
+}
+
+impl PathfindingAlgorithm for BellmanFord {
+    fn find_path(&mut self, maze: &mut Maze, sender: &Sender<PathfindingResult>) {
         let entrance = maze.get_entrance().expect("Entrance not found");
         let exit = maze.get_exit().expect("Exit not found");
 
@@ -39,12 +99,12 @@ impl PathfindingAlgorithm for BellmanFord {
 
         distance.insert(start, 0);
 
+        let mut optimal_route_found = false;
+
         for _ in 0..(maze.width * maze.height) - 1 {
             for y in 0..maze.height {
                 for x in 0..maze.width {
                     let current = Point { x, y };
-                    maze.set_cell(x, y, MazeCell::Visited);
-                    sender.send(PathfindingResult { stats: None, maze: maze.clone() }).unwrap();
 
                     for (dx, dy) in &MOVEMENTS {
                         let neighbor = Point {
@@ -58,13 +118,20 @@ impl PathfindingAlgorithm for BellmanFord {
                             continue;
                         }
 
-                        let weight = 1;
+                        BellmanFord::relax_edges(
+                            current,
+                            neighbor,
+                            goal,
+                            maze,
+                            &mut distance,
+                            &mut predecessor,
+                            sender,
+                            &mut optimal_route_found,
+                        );
 
-                        let tentative_distance = distance[&current].saturating_add(weight);
-
-                        if tentative_distance < distance[&neighbor] {
-                            distance.insert(neighbor, tentative_distance);
-                            predecessor.insert(neighbor, current);
+                        if optimal_route_found {
+                            self.reconstruct_path(start, goal, maze, &mut predecessor, sender);
+                            return;
                         }
                     }
                 }
@@ -97,29 +164,6 @@ impl PathfindingAlgorithm for BellmanFord {
                     }
                 }
             }
-        }
-
-        // Reconstruct the path
-        let mut current = goal;
-        let mut path = Vec::new();
-
-        while let Some(&pred) = predecessor.get(&current) {
-            path.push(current);
-            current = pred;
-        }
-
-        path.push(start);
-        path.reverse();
-
-        for point in path.iter().skip(1) {
-            maze.set_cell(point.x, point.y, MazeCell::FinalPath);
-
-            sender
-                .send(PathfindingResult {
-                    stats: None,
-                    maze: maze.clone(),
-                })
-                .expect("Failed to send pathfinding result");
         }
     }
 
