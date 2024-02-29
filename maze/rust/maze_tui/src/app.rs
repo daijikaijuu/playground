@@ -8,7 +8,8 @@ use std::{
 use enum_iterator::{next_cycle, previous_cycle};
 use maze_lib::{
     algorithms::{
-        self, Algorithm, BellmanFord, PathfindingAlgorithm, PathfindingResult, PathfindingState,
+        self, Algorithm, BellmanFord, PathfindingAlgorithm, PathfindingAnimationState,
+        PathfindingResult, PathfindingState,
     },
     Maze, MazeGenerator,
 };
@@ -29,7 +30,8 @@ pub struct App {
     selected_algorithm: Algorithm,
     animation_steps: VecDeque<Maze>,
     pub running: bool,
-    pub pathfinding_state: PathfindingState,
+    pathfinding_state: PathfindingState,
+    animation_state: PathfindingAnimationState,
 }
 
 impl App {
@@ -42,6 +44,7 @@ impl App {
             animation_steps: VecDeque::new(),
             running: true,
             pathfinding_state: PathfindingState::default(),
+            animation_state: PathfindingAnimationState::default(),
         }
     }
 
@@ -53,6 +56,8 @@ impl App {
         self.animation_steps.clear();
         self.maze = Maze::new(41, 41);
         self.maze.generate_maze(1, 1);
+        self.animation_state = PathfindingAnimationState::default();
+        self.pathfinding_state = PathfindingState::default();
     }
 
     pub fn find_path(&mut self) {
@@ -93,6 +98,7 @@ impl App {
         });
 
         while let Ok(recieved_result) = receiver.recv() {
+            self.animation_state = PathfindingAnimationState::Running;
             self.animation_steps.push_back(recieved_result.maze);
         }
 
@@ -101,8 +107,12 @@ impl App {
     }
 
     pub fn tick(&mut self) {
-        if !self.animation_steps.is_empty() {
-            self.maze = self.animation_steps.pop_front().unwrap();
+        if self.animation_state == PathfindingAnimationState::Running {
+            if !self.animation_steps.is_empty() {
+                self.maze = self.animation_steps.pop_front().unwrap();
+            } else {
+                self.animation_state = PathfindingAnimationState::default();
+            }
         }
     }
 
@@ -112,6 +122,18 @@ impl App {
 
     pub fn select_previous_algorithm(&mut self) {
         self.selected_algorithm = previous_cycle(&self.selected_algorithm);
+    }
+
+    pub fn pause_unpause_animation(&mut self) {
+        match self.animation_state {
+            PathfindingAnimationState::NotRunning => {}
+            PathfindingAnimationState::Paused => {
+                self.animation_state = PathfindingAnimationState::Running
+            }
+            PathfindingAnimationState::Running => {
+                self.animation_state = PathfindingAnimationState::Paused
+            }
+        };
     }
 }
 
@@ -124,7 +146,8 @@ impl Widget for &App {
             .direction(Direction::Horizontal)
             .constraints(vec![Constraint::Percentage(80), Constraint::Percentage(20)])
             .split(area);
-        MazeGrid::new(&self.maze, self.pathfinding_state).render(layout[0], buf);
+        MazeGrid::new(&self.maze, self.pathfinding_state, self.animation_state)
+            .render(layout[0], buf);
 
         let algs = Algorithm::ALL
             .map(|alg| {

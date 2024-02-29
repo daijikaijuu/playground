@@ -16,6 +16,7 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
         KeyCode::Up | KeyCode::Char('k') => app.select_previous_algorithm(),
         KeyCode::Down | KeyCode::Char('j') => app.select_next_algorithm(),
         KeyCode::Enter => app.find_path(),
+        KeyCode::Char(' ') => app.pause_unpause_animation(),
         _ => {}
     }
     Ok(())

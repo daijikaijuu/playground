@@ -1,20 +1,32 @@
-use maze_lib::{algorithms::PathfindingState, Maze};
+use maze_lib::{
+    algorithms::{PathfindingAnimationState, PathfindingState},
+    Maze,
+};
 use ratatui::{
     layout::Alignment,
     style::{Style, Stylize},
-    widgets::{block::{Position, Title}, Block, Borders, Widget},
+    widgets::{
+        block::{Position, Title},
+        Block, Borders, Widget,
+    },
 };
 
 pub struct MazeGrid {
     maze: Maze,
     state: PathfindingState,
+    animation_state: PathfindingAnimationState,
 }
 
 impl MazeGrid {
-    pub fn new(maze: &Maze, state: PathfindingState) -> Self {
+    pub fn new(
+        maze: &Maze,
+        state: PathfindingState,
+        animation_state: PathfindingAnimationState,
+    ) -> Self {
         MazeGrid {
             maze: maze.clone(),
             state,
+            animation_state,
         }
     }
 }
@@ -24,15 +36,25 @@ impl Widget for MazeGrid {
     where
         Self: Sized,
     {
-        let state_title = Title::from(match self.state{
+        let state_title = Title::from(match self.state {
             PathfindingState::NotStarted => "Pathfinding: Not started",
             PathfindingState::Running => "Pathfinding: Running",
             PathfindingState::Finished => "Pathfinding: Finished",
+        });
+        let animation_state_title = Title::from(match self.animation_state {
+            PathfindingAnimationState::Running => "Animation: Running",
+            PathfindingAnimationState::Paused => "Animation: Paused",
+            PathfindingAnimationState::NotRunning => "Animation: Not running",
         });
         let maze_block_title = Title::from("Maze crawler".bold());
         Block::default()
             .title(maze_block_title.alignment(Alignment::Center))
             .title(state_title.position(Position::Bottom))
+            .title(
+                animation_state_title
+                    .position(Position::Bottom)
+                    .alignment(Alignment::Right),
+            )
             .borders(Borders::ALL)
             .render(area, buf);
 
