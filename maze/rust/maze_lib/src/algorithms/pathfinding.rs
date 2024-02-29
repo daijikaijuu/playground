@@ -9,6 +9,14 @@ pub struct PathfindingStats {
     pub steps: usize,
 }
 
+#[derive(Debug, Copy, Clone, Default)]
+pub enum PathfindingState {
+    #[default]
+    NotStarted,
+    Running,
+    Finished,
+}
+
 pub struct PathfindingResult {
     pub stats: Option<PathfindingStats>,
     pub maze: Maze,

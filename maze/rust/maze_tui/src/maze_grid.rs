@@ -1,13 +1,21 @@
-use maze_lib::Maze;
-use ratatui::{layout::Alignment, style::{Style, Stylize}, widgets::{block::Title, Block, Borders, Widget}};
+use maze_lib::{algorithms::PathfindingState, Maze};
+use ratatui::{
+    layout::Alignment,
+    style::{Style, Stylize},
+    widgets::{block::{Position, Title}, Block, Borders, Widget},
+};
 
 pub struct MazeGrid {
     maze: Maze,
+    state: PathfindingState,
 }
 
 impl MazeGrid {
-    pub fn new(maze: &Maze) -> Self {
-        MazeGrid { maze: maze.clone() }
+    pub fn new(maze: &Maze, state: PathfindingState) -> Self {
+        MazeGrid {
+            maze: maze.clone(),
+            state,
+        }
     }
 }
 
@@ -16,10 +24,17 @@ impl Widget for MazeGrid {
     where
         Self: Sized,
     {
+        let state_title = Title::from(match self.state{
+            PathfindingState::NotStarted => "Pathfinding: Not started",
+            PathfindingState::Running => "Pathfinding: Running",
+            PathfindingState::Finished => "Pathfinding: Finished",
+        });
         let maze_block_title = Title::from("Maze crawler".bold());
         Block::default()
             .title(maze_block_title.alignment(Alignment::Center))
-            .borders(Borders::ALL).render(area, buf);
+            .title(state_title.position(Position::Bottom))
+            .borders(Borders::ALL)
+            .render(area, buf);
 
         let rows = self.maze.width;
         let cols = self.maze.height;

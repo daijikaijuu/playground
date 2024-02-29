@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crossterm::event::{Event as CrosstermEvent, KeyEvent};
 use futures::{FutureExt, StreamExt};
-use maze_lib::algorithms::Algorithm;
+use maze_lib::algorithms::{Algorithm, PathfindingState};
 use tokio::sync::mpsc;
 
 use crate::app::AppResult;
@@ -16,6 +16,7 @@ pub enum Event {
     SelectNextAlgorithm,
     SelectPreviousAlgorithm,
     FindPath(Algorithm),
+    PathfindingStatusChange(PathfindingState),
 }
 
 #[derive(Debug)]

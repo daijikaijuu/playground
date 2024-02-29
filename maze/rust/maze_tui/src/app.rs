@@ -7,7 +7,9 @@ use std::{
 
 use enum_iterator::{next_cycle, previous_cycle};
 use maze_lib::{
-    algorithms::{self, Algorithm, BellmanFord, PathfindingAlgorithm, PathfindingResult},
+    algorithms::{
+        self, Algorithm, BellmanFord, PathfindingAlgorithm, PathfindingResult, PathfindingState,
+    },
     Maze, MazeGenerator,
 };
 use ratatui::{
@@ -27,6 +29,7 @@ pub struct App {
     selected_algorithm: Algorithm,
     animation_steps: VecDeque<Maze>,
     pub running: bool,
+    pub pathfinding_state: PathfindingState,
 }
 
 impl App {
@@ -38,6 +41,7 @@ impl App {
             selected_algorithm: Algorithm::default(),
             animation_steps: VecDeque::new(),
             running: true,
+            pathfinding_state: PathfindingState::default(),
         }
     }
 
@@ -54,6 +58,7 @@ impl App {
     pub fn find_path(&mut self) {
         self.animation_steps.clear();
         self.maze.reset();
+        self.pathfinding_state = PathfindingState::Running;
 
         let (sender, receiver): (Sender<PathfindingResult>, Receiver<PathfindingResult>) =
             mpsc::channel();
@@ -70,7 +75,7 @@ impl App {
                 backtracking.find_path(&mut maze, &sender);
             }
             Algorithm::BellmanFord => {
-                let mut bellman_ford = BellmanFord::default();
+                let mut bellman_ford = BellmanFord;
                 bellman_ford.find_path(&mut maze, &sender);
             }
             Algorithm::BFS => {
@@ -92,6 +97,7 @@ impl App {
         }
 
         handle.join().expect("Failed to join thread");
+        self.pathfinding_state = PathfindingState::Finished;
     }
 
     pub fn tick(&mut self) {
@@ -118,7 +124,7 @@ impl Widget for &App {
             .direction(Direction::Horizontal)
             .constraints(vec![Constraint::Percentage(80), Constraint::Percentage(20)])
             .split(area);
-        MazeGrid::new(&self.maze).render(layout[0], buf);
+        MazeGrid::new(&self.maze, self.pathfinding_state).render(layout[0], buf);
 
         let algs = Algorithm::ALL
             .map(|alg| {
