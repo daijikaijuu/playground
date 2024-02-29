@@ -13,9 +13,9 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
             }
         }
 
-        // KeyCode::Up => self.selected_algorithm = previous_cycle(&self.selected_algorithm),
-        // KeyCode::Down => self.selected_algorithm = next_cycle(&self.selected_algorithm),
-        // KeyCode::Enter => self.find_path(),
+        KeyCode::Up => app.select_previous_algorithm(),
+        KeyCode::Down => app.select_next_algorithm(),
+        KeyCode::Enter => app.find_path(),
         _ => {}
     }
     Ok(())

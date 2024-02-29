@@ -5,6 +5,7 @@ use std::{
     thread,
 };
 
+use enum_iterator::{next_cycle, previous_cycle};
 use maze_lib::{
     algorithms::{self, Algorithm, PathfindingAlgorithm, PathfindingResult},
     Maze, MazeGenerator,
@@ -50,7 +51,7 @@ impl App {
         self.maze.generate_maze(1, 1);
     }
 
-    fn find_path(&mut self) {
+    pub fn find_path(&mut self) {
         self.animation_steps.clear();
         self.maze.reset();
 
@@ -89,11 +90,18 @@ impl App {
         handle.join().expect("Failed to join thread");
     }
 
-    fn tick(&mut self) {
-        println!("{:?}", self.animation_steps.len());
+    pub fn tick(&mut self) {
         if !self.animation_steps.is_empty() {
             self.maze = self.animation_steps.pop_front().unwrap();
         }
+    }
+
+    pub fn select_next_algorithm(&mut self) {
+        self.selected_algorithm = next_cycle(&self.selected_algorithm);
+    }
+
+    pub fn select_previous_algorithm(&mut self) {
+        self.selected_algorithm = previous_cycle(&self.selected_algorithm);
     }
 }
 

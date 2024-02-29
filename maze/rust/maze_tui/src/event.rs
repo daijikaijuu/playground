@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crossterm::event::{Event as CrosstermEvent, KeyEvent};
 use futures::{FutureExt, StreamExt};
+use maze_lib::algorithms::Algorithm;
 use tokio::sync::mpsc;
 
 use crate::app::AppResult;
@@ -9,7 +10,12 @@ use crate::app::AppResult;
 #[derive(Debug, Clone, Copy)]
 pub enum Event {
     Tick,
+    Redraw,
     Key(KeyEvent),
+
+    SelectNextAlgorithm,
+    SelectPreviousAlgorithm,
+    FindPath(Algorithm),
 }
 
 #[derive(Debug)]

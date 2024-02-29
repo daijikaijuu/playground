@@ -4,7 +4,7 @@ use crossterm::{
     execute,
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use ratatui::{backend::Backend, widgets::Widget, Terminal};
+use ratatui::{backend::Backend, Terminal};
 
 use crate::{
     app::{App, AppResult},
@@ -24,7 +24,7 @@ impl<B: Backend> Tui<B> {
     }
 
     pub fn init(&mut self) -> AppResult<()> {
-        terminal::enable_raw_mode();
+        terminal::enable_raw_mode()?;
         execute!(io::stdout(), EnterAlternateScreen)?;
 
         let panic_hook = panic::take_hook();
@@ -33,8 +33,8 @@ impl<B: Backend> Tui<B> {
             panic_hook(panic);
         }));
 
-        self.terminal.hide_cursor();
-        self.terminal.clear();
+        self.terminal.hide_cursor()?;
+        self.terminal.clear()?;
         Ok(())
     }
 
