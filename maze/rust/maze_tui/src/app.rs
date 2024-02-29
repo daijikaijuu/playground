@@ -7,7 +7,7 @@ use std::{
 
 use enum_iterator::{next_cycle, previous_cycle};
 use maze_lib::{
-    algorithms::{self, Algorithm, PathfindingAlgorithm, PathfindingResult},
+    algorithms::{self, Algorithm, BellmanFord, PathfindingAlgorithm, PathfindingResult},
     Maze, MazeGenerator,
 };
 use ratatui::{
@@ -68,6 +68,10 @@ impl App {
             Algorithm::Backtracking => {
                 let mut backtracking = algorithms::Backtracking::new();
                 backtracking.find_path(&mut maze, &sender);
+            }
+            Algorithm::BellmanFord => {
+                let mut bellman_ford = BellmanFord::default();
+                bellman_ford.find_path(&mut maze, &sender);
             }
             Algorithm::BFS => {
                 let mut bfs = algorithms::BFS::new();

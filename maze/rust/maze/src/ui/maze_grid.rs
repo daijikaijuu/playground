@@ -107,6 +107,10 @@ impl MazeGrid {
                 let mut backtracking = Backtracking::new();
                 backtracking.find_path(&mut maze, &sender);
             }
+            Algorithm::BellmanFord => {
+                let mut bellman_ford = BellmanFord::default();
+                bellman_ford.find_path(&mut maze, &sender);
+            }
             Algorithm::BFS => {
                 let mut bfs = BFS::new();
                 bfs.find_path(&mut maze, &sender);

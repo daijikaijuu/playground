@@ -5,15 +5,17 @@ pub enum Algorithm {
     AStar,
     #[default]
     Backtracking,
+    BellmanFord,
     BFS,
     DFS,
     Dijkstra,
 }
 
 impl Algorithm {
-    pub const ALL: [Algorithm; 5] = [
+    pub const ALL: [Algorithm; 6] = [
         Algorithm::AStar,
         Algorithm::Backtracking,
+        Algorithm::BellmanFord,
         Algorithm::BFS,
         Algorithm::DFS,
         Algorithm::Dijkstra,
@@ -28,6 +30,7 @@ impl std::fmt::Display for Algorithm {
             match self {
                 Algorithm::AStar => "AStar",
                 Algorithm::Backtracking => "Backtracking",
+                Algorithm::BellmanFord => "Bellman-Ford",
                 Algorithm::BFS => "Breadth-First Search (BFS)",
                 Algorithm::DFS => "Depth-First Search (DFS)",
                 Algorithm::Dijkstra => "Dijkstra's",
