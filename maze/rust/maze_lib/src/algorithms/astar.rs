@@ -28,6 +28,7 @@ impl PartialOrd for Node {
     }
 }
 
+#[derive(Default)]
 pub struct AStar {}
 
 impl AStar {

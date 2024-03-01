@@ -8,6 +8,7 @@ use super::{
     pathfinding::PathfindingAlgorithm, Algorithm, PathfindingResult, PathfindingStats, MOVEMENTS,
 };
 
+#[derive(Default)]
 pub struct Backtracking {
     stats: PathfindingStats,
 }
@@ -52,7 +53,7 @@ impl Backtracking {
             let new_x: i32 = x as i32 + dx;
             let new_y: i32 = y as i32 + dy;
 
-            if maze.is_valid_move(new_x as i32, new_y as i32)
+            if maze.is_valid_move(new_x, new_y)
                 && (maze.get_cell(new_x as usize, new_y as usize) == MazeCell::Path
                     || maze.get_cell(new_x as usize, new_y as usize) == MazeCell::Exit)
             {

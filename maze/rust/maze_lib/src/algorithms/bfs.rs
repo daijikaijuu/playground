@@ -7,6 +7,7 @@ use crate::maze::MazeCell;
 
 use super::{Algorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS};
 
+#[derive(Default)]
 pub struct BFS;
 
 impl BFS {

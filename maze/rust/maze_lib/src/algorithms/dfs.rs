@@ -6,6 +6,7 @@ use super::{
     Algorithm, PathfindingAlgorithm, PathfindingResult, PathfindingStats, Point, MOVEMENTS,
 };
 
+#[derive(Default)]
 pub struct DFS {
     stats: PathfindingStats,
 }
@@ -41,8 +42,8 @@ impl DFS {
 
             if maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
                 && !visited.contains(&Point {
-                    x: neighbor.x as usize,
-                    y: neighbor.y as usize,
+                    x: neighbor.x,
+                    y: neighbor.y,
                 })
                 && maze.get_cell(neighbor.x, neighbor.y) != MazeCell::Wall
             {
