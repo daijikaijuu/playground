@@ -6,18 +6,15 @@ use std::{
 };
 
 use iced::{
-    alignment, mouse,
+    alignment, mouse, theme,
     widget::{
         canvas::{self, Cache, Geometry, Path, Stroke},
-        column, row, text, Canvas,
+        column, container, row, text, Canvas,
     },
     Color, Element, Length, Point, Rectangle, Renderer, Size, Theme,
 };
 
-use maze_lib::{
-    algorithms::*,
-    Maze, MazeCell, MazeGenerator,
-};
+use maze_lib::{algorithms::*, Maze, MazeCell, MazeGenerator};
 
 #[derive(Debug)]
 pub struct MazeGrid {
@@ -47,14 +44,17 @@ impl MazeGrid {
     }
 
     pub fn view(&self) -> Element<Message> {
-        let canvas = Canvas::new(self).width(Length::Fill).height(Length::Fill);
+        let canvas = Canvas::new(self).width(Length::FillPortion(4)).height(Length::Fill);
 
         // Stats
         if let Some(st) = self.pathfinding_stats {
             let steps = text(format!("Steps: {}", st.steps))
                 .horizontal_alignment(alignment::Horizontal::Left);
-            let stats = column!(steps).width(200);
-            row![canvas, stats].into()
+            let stats = column!(steps).width(Length::Shrink).padding(5);
+            let stats_container = container(stats)
+                .width(Length::FillPortion(1))
+                .style(theme::Container::Box);
+            row![canvas, stats_container].align_items(iced::Alignment::Start).into()
         } else {
             canvas.into()
         }
