@@ -81,7 +81,7 @@ impl Application for MainWindow {
         .spacing(10);
 
         let top_controls = row![
-            text(format!("Maze crawler")).size(20),
+            text("Maze crawler".to_string()).size(20),
             algorithm_selector_list,
             button_controls,
         ]
@@ -93,7 +93,7 @@ impl Application for MainWindow {
             vertical_space().height(5),
             self.maze_grid
                 .view()
-                .map(move |message| Message::MazeGrid(message))
+                .map(Message::MazeGrid)
         ]
         .into()
     }

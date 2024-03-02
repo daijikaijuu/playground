@@ -9,7 +9,7 @@ pub struct PathfindingStats {
     pub steps: usize,
 }
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, PartialEq)]
 pub enum PathfindingState {
     #[default]
     NotStarted,

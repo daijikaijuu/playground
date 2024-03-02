@@ -21,8 +21,10 @@ pub struct MazeGrid {
     maze: Maze,
     grid_cache: Cache,
     animation_queue: VecDeque<Maze>,
+    animation_state: PathfindingAnimationState,
     pub selected_algorithm: Algorithm,
     pathfinding_stats: Option<PathfindingStats>,
+    pathfinding_state: PathfindingState,
 }
 
 #[derive(Debug, Clone)]
@@ -39,12 +41,16 @@ impl MazeGrid {
             grid_cache: Cache::default(),
             selected_algorithm: Algorithm::default(),
             animation_queue: VecDeque::new(),
+            animation_state: PathfindingAnimationState::default(),
             pathfinding_stats: None,
+            pathfinding_state: PathfindingState::default(),
         }
     }
 
     pub fn view(&self) -> Element<Message> {
-        let canvas = Canvas::new(self).width(Length::FillPortion(4)).height(Length::Fill);
+        let canvas = Canvas::new(self)
+            .width(Length::FillPortion(4))
+            .height(Length::Fill);
 
         // Stats
         if let Some(st) = self.pathfinding_stats {
@@ -54,7 +60,9 @@ impl MazeGrid {
             let stats_container = container(stats)
                 .width(Length::FillPortion(1))
                 .style(theme::Container::Box);
-            row![canvas, stats_container].align_items(iced::Alignment::Start).into()
+            row![canvas, stats_container]
+                .align_items(iced::Alignment::Start)
+                .into()
         } else {
             canvas.into()
         }
@@ -76,11 +84,14 @@ impl MazeGrid {
 
     pub fn tick(&mut self) {
         if !self.animation_queue.is_empty() {
+            self.animation_state = PathfindingAnimationState::Running;
             self.maze = self
                 .animation_queue
                 .pop_front()
                 .expect("Cannot pop animation frame");
             self.grid_cache.clear();
+        } else {
+            self.animation_state = PathfindingAnimationState::NotRunning;
         }
     }
 
@@ -89,6 +100,7 @@ impl MazeGrid {
         self.pathfinding_stats = None;
         self.grid_cache.clear();
         self.animation_queue.clear();
+        self.pathfinding_state = PathfindingState::Running;
         self.maze = self.maze.from_original();
 
         let (sender, reciever): (Sender<PathfindingResult>, Receiver<PathfindingResult>) =
@@ -108,7 +120,7 @@ impl MazeGrid {
                 backtracking.find_path(&mut maze, &sender);
             }
             Algorithm::BellmanFord => {
-                let mut bellman_ford = BellmanFord::default();
+                let mut bellman_ford = BellmanFord;
                 bellman_ford.find_path(&mut maze, &sender);
             }
             Algorithm::BFS => {
@@ -133,12 +145,16 @@ impl MazeGrid {
 
         handle.join().expect("Failed to join thread");
         self.grid_cache.clear();
+
+        self.pathfinding_state = PathfindingState::Finished;
     }
 
     fn generate_maze(&mut self) {
         self.maze.generate_maze(1, 1);
         self.grid_cache.clear();
         self.animation_queue.clear();
+        self.animation_state = PathfindingAnimationState::default();
+        self.pathfinding_state = PathfindingState::default();
     }
 }
 
@@ -183,6 +199,30 @@ impl canvas::Program<Message> for MazeGrid {
                             .with_color(Color::from_rgb8(55, 55, 55)),
                     )
                 }
+            }
+
+            if self.animation_state == PathfindingAnimationState::Running {
+                frame.stroke(
+                    &Path::rectangle(
+                        Point::new(0.0, 0.0),
+                        Size::new(cell_size * rows as f32, cell_size * cols as f32 - 1.0),
+                    ),
+                    Stroke::default()
+                        .with_width(1.0)
+                        .with_color(Color::from_rgb8(0, 255, 0)),
+                );
+            }
+
+            if self.pathfinding_state == PathfindingState::Running {
+                frame.stroke(
+                    &Path::rectangle(
+                        Point::new(0.0, 0.0),
+                        Size::new(cell_size * rows as f32, cell_size * cols as f32 - 1.0),
+                    ),
+                    Stroke::default()
+                        .with_width(1.0)
+                        .with_color(Color::from_rgb8(255, 0, 0)),
+                );
             }
         });
 
