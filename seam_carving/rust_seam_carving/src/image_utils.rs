@@ -1,13 +1,12 @@
 use anyhow::Result;
 
-pub fn save_vec_as_image(
+pub fn _save_vec_as_image(
     buf: &Vec<f32>,
     width: usize,
     height: usize,
     filename: &str,
 ) -> Result<()> {
     let mut image_buf = image::ImageBuffer::new(width as u32, height as u32);
-    // println!("{:?}", buf);
 
     for (x, y, pixel) in image_buf.enumerate_pixels_mut() {
         let i = x as usize + y as usize * width;
