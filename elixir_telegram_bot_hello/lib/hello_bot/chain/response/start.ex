@@ -1,4 +1,4 @@
-defmodule HelloBot.RespStartChain do
+defmodule HelloBot.Chain.Response.Start do
   @moduledoc false
 
   use Telegex.Chain, {:command, :start}

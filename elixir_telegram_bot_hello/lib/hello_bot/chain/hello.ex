@@ -1,4 +1,4 @@
-defmodule HelloBot.CallHelloChain do
+defmodule HelloBot.Chain.Hello do
   @moduledoc false
 
   use Telegex.Chain, {:callback_query, prefix: "hello:"}
