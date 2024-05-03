@@ -87,7 +87,12 @@ fn find_seam_vertical(
 
 fn find_optimal_seam_vertial(width: usize, _height: usize, energy_map: &Vec<f32>) -> Vec<usize> {
     let mut rng = rand::thread_rng();
-    let seeds = (0..100)
+    let seed_count = if width < 100 {
+        width
+    } else {
+        (width as f32 * 0.3) as usize
+    };
+    let seeds = (0..seed_count)
         .map(|_| rng.gen_range(0..width))
         .collect::<Vec<usize>>();
 
@@ -111,7 +116,8 @@ fn remove_seam_vertical_from_imgbuf(img: &mut Vec<u8>, seam: &Vec<usize>) {
 
 // TODO: Rewrite for generating multiple seams in parallel and chosing one with less energy
 fn main() -> Result<()> {
-    let image = Reader::open("../images/Broadway_tower_edit.jpg")?.decode()?;
+    let filename = "Broadway_tower_edit.jpg";
+    let image = Reader::open(format!("../images/{}", &filename))?.decode()?;
     let mut width = image.width() as usize;
     let height = image.height() as usize;
 
@@ -131,7 +137,7 @@ fn main() -> Result<()> {
         image.height()
     );
 
-    for i in 1..600 {
+    for i in 1..700 {
         let seam = find_optimal_seam_vertial(width, height, &energy_map);
         // save_vec_as_image(
         //     &energy_map,
@@ -147,6 +153,6 @@ fn main() -> Result<()> {
     let image_buf =
         image::ImageBuffer::from_vec(width as u32, height as u32, image_vec.to_vec()).unwrap();
     let result = image::DynamicImage::ImageRgb8(image_buf);
-    result.save("../images/tmp/rust_result.png")?;
+    result.save(format!("../images/tmp/rust_result_{}.png", filename))?;
     Ok(())
 }
