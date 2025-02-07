@@ -5,3 +5,4 @@ target/
 *.o
 .vscode/
 tmp/
+__pycache__/
