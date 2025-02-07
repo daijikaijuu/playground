@@ -2,7 +2,9 @@ import maze_lib
 
 
 def main() -> None:
-    print(dir(maze_lib))
+    maze = maze_lib.Maze(10, 10)
+    maze.generate_maze()
+    maze.print_maze()
 
 
 if __name__ == "__main__":

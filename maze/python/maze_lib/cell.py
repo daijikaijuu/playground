@@ -2,20 +2,37 @@ from enum import Enum
 
 
 class CellType(Enum):
-    FLOOR = 0
-    WALL = 1
-    WALL_CORNER_TL = 2
-    WALL_CORNER_TR = 3
-    WALL_CORNER_BL = 4
-    WALL_CORNER_BR = 5
-    WALL_CORNER_TL_CORNER_TR = 6
-    WALL_CORNER_BL_CORNER_BR = 7
-    WALL_CORNER_TL_CORNER_BL = 8
-    WALL_CORNER_TR_CORNER_BR = 9
+    FLOOR = (0, '  ')
+    WALL_HORIZONTAL = (1, '│')
+    WALL_VERTICAL = (2, '─')
+    WALL_CORNER_TL = (3, '┌')
+    WALL_CORNER_TR = (4, '┐')
+    WALL_CORNER_BL = (5, '└')
+    WALL_CORNER_BR = (6, '┘')
+    # WALL_CROSS = (7, '┼')
+    # WALL_T_CROSS = (8, '┬')
+    # WALL_B_CROSS = (9, '┴')
+    # WALL_L_CROSS = (10, '├')
+    # WALL_R_CROSS = (11, '┤')
+
+    def __init__(self, value: int, graphic: str):
+        self._value_ = value
+        self.graphic = graphic
 
 
 class Cell:
     cell_type: CellType
+    possible_types: set[CellType]
 
-    def __init__(self, cell_type: CellType):
+    def __init__(self, cell_type: CellType = None):
         self.cell_type = cell_type
+        self.possible_types = set(CellType)
+
+    def collapse(self, cell_type: CellType):
+        """Collapse the cell to a specific type"""
+        self.cell_type = cell_type
+        self.possible_types = {cell_type}
+
+    def is_collapsed(self) -> bool:
+        """Check if the cell has been collapsed"""
+        return len(self.possible_types) == 1
