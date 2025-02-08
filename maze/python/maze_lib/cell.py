@@ -10,7 +10,7 @@ class CellType(Enum):
     WALL_CORNER_BL = (5, '└')
     WALL_CORNER_BR = (6, '┘')
     # WALL_CROSS = (7, '┼')
-    # WALL_T_CROSS = (8, '┬')
+    WALL_T_CROSS = (8, '┬')
     # WALL_B_CROSS = (9, '┴')
     # WALL_L_CROSS = (10, '├')
     # WALL_R_CROSS = (11, '┤')

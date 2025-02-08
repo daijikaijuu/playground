@@ -111,6 +111,11 @@ class Maze:
                 return {CellType.WALL_VERTICAL,
                         CellType.WALL_CORNER_TL}
 
+            case (CellType.WALL_T_CROSS, Directions.UP):
+                return {CellType.FLOOR}
+            case (CellType.WALL_T_CROSS, Directions.DOWN):
+                return {CellType.WALL_VERTICAL}
+
             case _:
                 # Default: Allow all types if no specific rule applies
                 return set(CellType)
