@@ -36,10 +36,11 @@ class Maze:
             if neighbor_cell.is_collapsed():
                 continue  # Skip already collapsed cells
 
-            allowed_types = self.get_allowed_types(
-                current_type,
-                Directions.calculate_direction((row, col), (nr, nc)))
+            direction = Directions.calculate_direction((row, col), (nr, nc))
+            allowed_types = self.get_allowed_types(current_type, direction)
+            print((row, col), current_type, direction, (nr, nc), allowed_types)
             neighbor_cell.possible_types &= allowed_types
+            print(neighbor_cell.possible_types)
 
             if not neighbor_cell.possible_types:
                 raise ValueError("No possible types for neighbor cell")
@@ -49,24 +50,66 @@ class Maze:
            current cell.
         """
         match (current_type, direction):
-            case (CellType.FLOOR, _):
+            case (CellType.WALL_HORIZONTAL, Directions.UP | Directions.DOWN):
                 return {CellType.FLOOR}
-            case (CellType.WALL_VERTICAL, Directions.UP | Directions.DOWN):
-                return {CellType.WALL_VERTICAL}
-            case (CellType.WALL_HORIZONTAL, Directions.LEFT | Directions.RIGHT):
-                return {CellType.WALL_HORIZONTAL, CellType.WALL_HORIZONTAL}
+            case (CellType.WALL_HORIZONTAL, Directions.LEFT):
+                return {CellType.WALL_HORIZONTAL,
+                        CellType.WALL_CORNER_TL,
+                        CellType.WALL_CORNER_BL}
+            case (CellType.WALL_HORIZONTAL, Directions.RIGHT):
+                return {CellType.WALL_HORIZONTAL,
+                        CellType.WALL_CORNER_TR,
+                        CellType.WALL_CORNER_BR}
+
+            case (CellType.WALL_VERTICAL, Directions.LEFT | Directions.RIGHT):
+                return {CellType.FLOOR}
+            case (CellType.WALL_VERTICAL, Directions.UP):
+                return {CellType.WALL_VERTICAL,
+                        CellType.WALL_CORNER_TL,
+                        CellType.WALL_CORNER_TR}
+            case (CellType.WALL_VERTICAL, Directions.DOWN):
+                return {CellType.WALL_VERTICAL,
+                        CellType.WALL_CORNER_BL,
+                        CellType.WALL_CORNER_BR}
+
+            case (CellType.WALL_CORNER_TL, Directions.UP | Directions.LEFT):
+                return {CellType.FLOOR}
             case (CellType.WALL_CORNER_TL, Directions.RIGHT):
-                return {CellType.WALL_HORIZONTAL, CellType.WALL_CORNER_TR}
+                return {CellType.WALL_HORIZONTAL,
+                        CellType.WALL_CORNER_BR}
+            case (CellType.WALL_CORNER_TL, Directions.DOWN):
+                return {CellType.WALL_VERTICAL,
+                        CellType.WALL_CORNER_BL,
+                        CellType.WALL_CORNER_BR}
+
+            case (CellType.WALL_CORNER_TR, Directions.UP | Directions.RIGHT):
+                return {CellType.FLOOR}
             case (CellType.WALL_CORNER_TR, Directions.LEFT):
-                return {CellType.WALL_HORIZONTAL, CellType.WALL_CORNER_TL}
+                return {CellType.WALL_HORIZONTAL,
+                        CellType.WALL_CORNER_BL}
+            case (CellType.WALL_CORNER_TR, Directions.DOWN):
+                return {CellType.WALL_VERTICAL,
+                        CellType.WALL_CORNER_BL}
+
+            case (CellType.WALL_CORNER_BL, Directions.LEFT | Directions.DOWN):
+                return {CellType.FLOOR}
             case (CellType.WALL_CORNER_BL, Directions.RIGHT):
-                return {CellType.WALL_HORIZONTAL, CellType.WALL_CORNER_BR}
+                return {CellType.WALL_HORIZONTAL,
+                        CellType.WALL_CORNER_TR}
+            case (CellType.WALL_CORNER_BL, Directions.UP):
+                return {CellType.WALL_VERTICAL,
+                        CellType.WALL_CORNER_TL,
+                        CellType.WALL_CORNER_TR}
+
+            case (CellType.WALL_CORNER_BR, Directions.RIGHT | Directions.DOWN):
+                return {CellType.FLOOR}
             case (CellType.WALL_CORNER_BR, Directions.LEFT):
-                return {CellType.WALL_HORIZONTAL, CellType.WALL_CORNER_BL}
-            case (CellType.WALL_VERTICAL, Directions.UP | Directions.DOWN):
-                return {CellType.WALL_VERTICAL}
-            case (CellType.WALL_HORIZONTAL, Directions.LEFT | Directions.RIGHT):
-                return {CellType.WALL_HORIZONTAL}
+                return {CellType.WALL_HORIZONTAL,
+                        CellType.WALL_CORNER_TL}
+            case (CellType.WALL_CORNER_BR, Directions.UP):
+                return {CellType.WALL_VERTICAL,
+                        CellType.WALL_CORNER_TL}
+
             case _:
                 # Default: Allow all types if no specific rule applies
                 return set(CellType)
@@ -76,11 +119,11 @@ class Maze:
         min_entropy = float('inf')
         min_cell = None
         for r in range(self.height):
-            for c in range(self.height):
+            for c in range(self.width):
                 cell = self.grid[r][c]
                 if not cell.is_collapsed():
                     entropy = len(cell.possible_types)
-                    if 1 < entropy < min_entropy:
+                    if 1 <= entropy < min_entropy:
                         min_entropy = entropy
                         min_cell = (r, c)
         return min_cell
@@ -99,20 +142,48 @@ class Maze:
 
     def generate_maze(self):
         """Generate the maze using Wave Function Collapse algorithm"""
-        self.collapse_random_cell()
-
         while not self.is_fully_collapsed():
             min_cell = self.find_min_entropy_cell()
+            r, c = min_cell
+            self.print_maze(r, c)
             if min_cell:
-                r, c = min_cell
                 cell = self.grid[r][c]
+                print(f'min entropy cell: {min_cell}', cell.possible_types)
                 cell.collapse(random.choice(list(cell.possible_types)))
                 self.propagate_constraints(r, c)
             else:
+                print('random cell')
                 self.collapse_random_cell()
+            print('------')
 
-    def print_maze(self):
-        """Print the generated maze."""
-        for row in self.grid:
-            print(''.join(str(cell.cell_type.graphic)
-                  if cell.cell_type else '?' for cell in row))
+    def print_maze(self, hr: int = -1, hc: int = -1):
+        """Print the generated maze with a gradient based on entropy."""
+        # Clear the screen and move the cursor to the top-left corner
+        # Uncomment the following line if you want to clear the screen
+        # print("\033[2J\033[H", end='')
+
+        max_entropy = len(CellType)
+
+        for r, row in enumerate(self.grid):
+            for c, cell in enumerate(row):
+                entropy = len(cell.possible_types)
+                i = cell.cell_type.graphic if cell.cell_type else '?'
+
+                # Determine the color based on entropy
+                if r == hr and c == hc:
+                    # Highlight the current cell in red
+                    print(f"\033[5m{i}\033[0m", end='')  # Red color
+                else:
+                    # Map entropy to a grayscale gradient (30-37 are ANSI grayscale codes)
+                    if entropy > 0:
+                        # Scale entropy to 30-37
+                        gray_level = int(30 + (entropy / max_entropy) * 7)
+                        # Clamp to valid range
+                        gray_level = min(max(gray_level, 30), 37)
+                        # print(gray_level)
+                        print(f"\033[{gray_level}m{i}\033[0m",
+                              end='')  # Apply grayscale
+                    else:
+                        # Default color if max_entropy is 0
+                        print(f'\033[47m{i}\033[0m', end='')
+            print('')  # Newline after each row

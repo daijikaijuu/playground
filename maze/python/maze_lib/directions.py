@@ -2,10 +2,10 @@ from enum import Enum
 
 
 class Directions(Enum):
-    UP = (0, -1)
-    DOWN = (0, 1)
-    LEFT = (1, 0)
-    RIGHT = (-1, 0)
+    LEFT = (0, -1)
+    RIGHT = (0, 1)
+    DOWN = (1, 0)
+    UP = (-1, 0)
 
     @property
     def delta(self) -> tuple[int, int]:
@@ -33,13 +33,13 @@ class Directions(Enum):
 
         match (dr, dc):
             case (0, -1):
-                return Directions.UP
-            case (0, 1):
-                return Directions.DOWN
-            case (-1, 0):
                 return Directions.LEFT
-            case (1, 0):
+            case (0, 1):
                 return Directions.RIGHT
+            case (-1, 0):
+                return Directions.UP
+            case (1, 0):
+                return Directions.DOWN
             case _:
                 raise ValueError(
                     f"Invalid direction from {from_point} to {to_point}")
