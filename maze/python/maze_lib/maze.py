@@ -36,6 +36,7 @@ class Maze:
             if neighbor_cell.is_collapsed():
                 continue  # Skip already collapsed cells
 
+            allowed_types = set()
             direction = Directions.calculate_direction((row, col), (nr, nc))
             allowed_types = self.get_allowed_types(current_type, direction)
             print((row, col), current_type, direction, (nr, nc), allowed_types)
@@ -149,12 +150,29 @@ class Maze:
             if min_cell:
                 cell = self.grid[r][c]
                 print(f'min entropy cell: {min_cell}', cell.possible_types)
-                cell.collapse(random.choice(list(cell.possible_types)))
+                self.check_constraints(r, c)
                 self.propagate_constraints(r, c)
             else:
                 print('random cell')
                 self.collapse_random_cell()
             print('------')
+
+    def check_constraints(self, row: int, col: int):
+        cell = self.grid[row][col]
+        if row == 0 and col == 0:
+            cell.collapse(CellType.WALL_CORNER_TL)
+        elif row == self.height - 1 and col == 0:
+            cell.collapse(CellType.WALL_CORNER_BL)
+        elif row == 0 and col == self.width - 1:
+            cell.collapse(CellType.WALL_CORNER_TR)
+        elif row == self.height - 1 and col == self.width - 1:
+            cell.collapse(CellType.WALL_CORNER_BR)
+        elif row == 0 or row == self.height - 1:
+            cell.collapse(CellType.WALL_HORIZONTAL)
+        elif col == 0 or col == self.width - 1:
+            cell.collapse(CellType.WALL_VERTICAL)
+        else:
+            cell.collapse(random.choice(list(cell.possible_types)))
 
     def print_maze(self, hr: int = -1, hc: int = -1):
         """Print the generated maze with a gradient based on entropy."""

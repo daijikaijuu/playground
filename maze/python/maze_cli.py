@@ -2,7 +2,7 @@ import maze_lib
 
 
 def main() -> None:
-    maze = maze_lib.Maze(10, 10)
+    maze = maze_lib.Maze(40, 10)
     maze.generate_maze()
     maze.print_maze()
 
