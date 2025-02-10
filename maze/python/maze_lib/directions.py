@@ -6,6 +6,10 @@ class Directions(Enum):
     RIGHT = (0, 1)
     DOWN = (1, 0)
     UP = (-1, 0)
+    TOP_LEFT = (-1, -1)
+    TOP_RIGHT = (-1, 1)
+    BOTTOM_LEFT = (1, -1)
+    BOTTOM_RIGHT = (1, 1)
 
     @property
     def delta(self) -> tuple[int, int]:
@@ -13,8 +17,16 @@ class Directions(Enum):
         return self.value
 
     @staticmethod
-    def get_directions() -> list[tuple[int, int]]:
-        return [dir.value for dir in Directions]
+    def get_directions(diagonal: bool = False) -> list[tuple[int, int]]:
+        if diagonal:
+            return [dir.value for dir in Directions]
+        else:
+            return [dir.value for dir in Directions
+                    if dir not in {
+                        Directions.TOP_LEFT,
+                        Directions.TOP_RIGHT,
+                        Directions.BOTTOM_LEFT,
+                        Directions.BOTTOM_RIGHT}]
 
     @staticmethod
     def calculate_direction(from_point: tuple[int, int], to_point: tuple[int, int]):
@@ -40,6 +52,14 @@ class Directions(Enum):
                 return Directions.UP
             case (1, 0):
                 return Directions.DOWN
+            case (-1, -1):
+                return Directions.TOP_LEFT
+            case (-1, 1):
+                return Directions.TOP_RIGHT
+            case (1, -1):
+                return Directions.BOTTOM_LEFT
+            case (1, 1):
+                return Directions.BOTTOM_RIGHT
             case _:
                 raise ValueError(
                     f"Invalid direction from {from_point} to {to_point}")
