@@ -4,7 +4,7 @@ import maze_lib
 def generate_maze(width: int, height: int):
     while True:
         try:
-            maze = maze_lib.Maze(width, height)
+            maze = maze_lib.Maze(width, height, False)
             maze.generate_maze()
             maze.print_maze()
             return
@@ -13,7 +13,7 @@ def generate_maze(width: int, height: int):
 
 
 def main() -> None:
-    generate_maze(40, 10)
+    generate_maze(40, 20)
 
 
 if __name__ == "__main__":

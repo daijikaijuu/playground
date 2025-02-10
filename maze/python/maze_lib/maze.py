@@ -9,9 +9,10 @@ class Maze:
     height: int
     grid: list[list[Cell]]
 
-    def __init__(self, width: int, height: int):
+    def __init__(self, width: int, height: int, debug: bool = False):
         self.width = width
         self.height = height
+        self.debug = debug
         self.grid = [[Cell() for _ in range(width)] for _ in range(height)]
 
     def get_neighbors(self, row: int, col: int) -> list[tuple[int, int]]:
@@ -237,20 +238,24 @@ class Maze:
                     self.propagate_border(row, col)
                     self.propagate_constraints
 
+        self.grid[1][1] = Cell(CellType.START)
+        self.grid[-2][-2] = Cell(CellType.FINISH)
+
         while not self.is_fully_collapsed():
             min_cell = self.find_min_entropy_cell()
             if min_cell:
                 r, c = min_cell
-                self.print_maze(r, c)
                 cell = self.grid[r][c]
-                print(f'min entropy cell: {min_cell}', cell.possible_types)
+                if self.debug:
+                    self.print_maze(r, c)
+                    print(f'min entropy cell: {min_cell}', cell.possible_types)
                 # cell.collapse(random.choice(list(cell.possible_types)))
                 cell.collapse_by_frequency()
                 self.propagate_constraints(r, c)
             else:
-                print('random cell')
                 self.collapse_random_cell()
-            print('------')
+            if self.debug:
+                print('------')
 
     def print_maze(self, hr: int = -1, hc: int = -1):
         """Print the generated maze with a gradient based on entropy."""

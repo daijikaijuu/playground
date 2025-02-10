@@ -16,6 +16,9 @@ class CellType(Enum):
     WALL_L_CROSS = (10, '├', 0.1)
     WALL_R_CROSS = (11, '┤', 0.1)
 
+    START = (40, 's', 0.0)
+    FINISH = (41, 'f', 0.0)
+
     def __init__(self, value: int, graphic: str, frequency: float):
         self._value_ = value
         self.graphic = graphic
@@ -29,7 +32,8 @@ class Cell:
     def __init__(self, cell_type: CellType | None = None):
         if cell_type is None:
             self.cell_type = CellType.FLOOR
-            self.possible_types = set(CellType)
+            self.possible_types = set(CellType) ^ {
+                CellType.START, CellType.FINISH}
         else:
             self.cell_type = cell_type
             self.possible_types = {cell_type}
