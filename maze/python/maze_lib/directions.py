@@ -1,5 +1,7 @@
 from enum import Enum
 
+from .types import Point
+
 
 class Directions(Enum):
     LEFT = (0, -1)
@@ -12,12 +14,12 @@ class Directions(Enum):
     BOTTOM_RIGHT = (1, 1)
 
     @property
-    def delta(self) -> tuple[int, int]:
+    def delta(self) -> Point:
         """Return the row and column deltas for the direction."""
         return self.value
 
     @staticmethod
-    def get_directions(diagonal: bool = False) -> list[tuple[int, int]]:
+    def get_directions(diagonal: bool = False) -> list[Point]:
         if diagonal:
             return [dir.value for dir in Directions]
         else:
@@ -29,13 +31,13 @@ class Directions(Enum):
                         Directions.BOTTOM_RIGHT}]
 
     @staticmethod
-    def calculate_direction(from_point: tuple[int, int], to_point: tuple[int, int]):
+    def calculate_direction(from_point: Point, to_point: Point):
         """
         Calculate the direction from one point to another using pattern matching.
 
         Args:
-            from_point (Tuple[int, int]): The starting point (row, col).
-            to_point (Tuple[int, int]): The target point (row, col).
+            from_point (Point): The starting point (row, col).
+            to_point (Point): The target point (row, col).
 
         Returns:
             Directions: The direction from the starting point to the target point.

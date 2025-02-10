@@ -2,6 +2,7 @@ import random
 
 from .cell import Cell, CellType
 from .directions import Directions
+from .types import Point
 
 
 class Maze:
@@ -15,7 +16,7 @@ class Maze:
         self.debug = debug
         self.grid = [[Cell() for _ in range(width)] for _ in range(height)]
 
-    def get_neighbors(self, row: int, col: int) -> list[tuple[int, int]]:
+    def get_neighbors(self, row: int, col: int) -> list[Point]:
         """Get valid neighboring cells."""
         neighbors = []
         for dr, dc in Directions.get_directions(diagonal=True):
@@ -196,7 +197,7 @@ class Maze:
                 # Default: Allow all types if no specific rule applies
                 return set(CellType)
 
-    def find_min_entropy_cell(self) -> tuple[int, int] | None:
+    def find_min_entropy_cell(self) -> Point | None:
         """Find the cell with the minimum entropy (least number of possible types)"""
         min_entropy = float('inf')
         min_cell = None
@@ -274,6 +275,22 @@ class Maze:
                 self.collapse_random_cell()
             if self.debug:
                 print('------')
+
+    def find_start_and_finish(self) -> tuple[Point, Point]:
+        start = None
+        finish = None
+
+        for row in range(self.height):
+            for col in range(self.width):
+                cell = self.grid[row][col]
+                if cell.cell_type == CellType.START:
+                    start = (row, col)
+                if cell.cell_type == CellType.FINISH:
+                    finish = (row, col)
+
+        if start is None or finish is None:
+            raise Exception('Start or finish not found')
+        return start, finish
 
     def print_maze(self, hr: int = -1, hc: int = -1):
         """Print the generated maze with a gradient based on entropy."""
