@@ -13,7 +13,7 @@ class Directions(Enum):
         return self.value
 
     @staticmethod
-    def get_directions() -> 'Directions':
+    def get_directions() -> list[tuple[int, int]]:
         return [dir.value for dir in Directions]
 
     @staticmethod

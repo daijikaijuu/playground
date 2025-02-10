@@ -38,7 +38,8 @@ class Maze:
 
             allowed_types = set()
             direction = Directions.calculate_direction((row, col), (nr, nc))
-            allowed_types = self.get_allowed_types(current_type, direction)
+            allowed_types = self.get_allowed_types(
+                row, col, current_type, direction)
             print((row, col), current_type, direction, (nr, nc), allowed_types)
             neighbor_cell.possible_types &= allowed_types
             print(neighbor_cell.possible_types)
@@ -46,7 +47,7 @@ class Maze:
             if not neighbor_cell.possible_types:
                 raise ValueError("No possible types for neighbor cell")
 
-    def get_allowed_types(self, current_type: CellType, direction: Directions) -> set[CellType]:
+    def get_allowed_types(self, col: int, row: int, current_type: CellType, direction: Directions) -> set[CellType]:
         """Determine which types are allowed for the neighbor based on the
            current cell.
         """
@@ -120,7 +121,7 @@ class Maze:
                 # Default: Allow all types if no specific rule applies
                 return set(CellType)
 
-    def find_min_entropy_cell(self) -> tuple[int, int]:
+    def find_min_entropy_cell(self) -> tuple[int, int] | None:
         """Find the cell with the minimum entropy (least number of possible types)"""
         min_entropy = float('inf')
         min_cell = None
@@ -150,34 +151,17 @@ class Maze:
         """Generate the maze using Wave Function Collapse algorithm"""
         while not self.is_fully_collapsed():
             min_cell = self.find_min_entropy_cell()
-            r, c = min_cell
-            self.print_maze(r, c)
             if min_cell:
+                r, c = min_cell
+                self.print_maze(r, c)
                 cell = self.grid[r][c]
                 print(f'min entropy cell: {min_cell}', cell.possible_types)
-                self.check_constraints(r, c)
+                cell.collapse(random.choice(list(cell.possible_types)))
                 self.propagate_constraints(r, c)
             else:
                 print('random cell')
                 self.collapse_random_cell()
             print('------')
-
-    def check_constraints(self, row: int, col: int):
-        cell = self.grid[row][col]
-        if row == 0 and col == 0:
-            cell.collapse(CellType.WALL_CORNER_TL)
-        elif row == self.height - 1 and col == 0:
-            cell.collapse(CellType.WALL_CORNER_BL)
-        elif row == 0 and col == self.width - 1:
-            cell.collapse(CellType.WALL_CORNER_TR)
-        elif row == self.height - 1 and col == self.width - 1:
-            cell.collapse(CellType.WALL_CORNER_BR)
-        elif row == 0 or row == self.height - 1:
-            cell.collapse(CellType.WALL_HORIZONTAL)
-        elif col == 0 or col == self.width - 1:
-            cell.collapse(CellType.WALL_VERTICAL)
-        else:
-            cell.collapse(random.choice(list(cell.possible_types)))
 
     def print_maze(self, hr: int = -1, hc: int = -1):
         """Print the generated maze with a gradient based on entropy."""
