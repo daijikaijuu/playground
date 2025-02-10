@@ -53,7 +53,10 @@ class Maze:
         """
         match (current_type, direction):
             case (CellType.WALL_HORIZONTAL, Directions.UP | Directions.DOWN):
-                return {CellType.FLOOR}
+                return {CellType.FLOOR,
+                        CellType.SWAMP_LITE,
+                        CellType.SWAMP_MEDIUM,
+                        CellType.SWAMP_HEAVY}
             case (CellType.WALL_HORIZONTAL, Directions.LEFT):
                 return {CellType.WALL_HORIZONTAL,
                         CellType.WALL_CORNER_TL,
@@ -74,7 +77,10 @@ class Maze:
                         CellType.FLOOR}
 
             case (CellType.WALL_VERTICAL, Directions.LEFT | Directions.RIGHT):
-                return {CellType.FLOOR}
+                return {CellType.FLOOR,
+                        CellType.SWAMP_LITE,
+                        CellType.SWAMP_MEDIUM,
+                        CellType.SWAMP_HEAVY}
             case (CellType.WALL_VERTICAL, Directions.UP):
                 return {CellType.WALL_VERTICAL,
                         CellType.WALL_CORNER_TL,
@@ -96,7 +102,10 @@ class Maze:
                         CellType.WALL_HORIZONTAL}
 
             case (CellType.WALL_CORNER_TL, Directions.UP | Directions.LEFT):
-                return {CellType.FLOOR}
+                return {CellType.FLOOR,
+                        CellType.SWAMP_LITE,
+                        CellType.SWAMP_MEDIUM,
+                        CellType.SWAMP_HEAVY}
             case (CellType.WALL_CORNER_TL, Directions.RIGHT):
                 return {CellType.WALL_HORIZONTAL,
                         CellType.WALL_CORNER_BR}
@@ -112,7 +121,10 @@ class Maze:
                 return {CellType.FLOOR}
 
             case (CellType.WALL_CORNER_TR, Directions.UP | Directions.RIGHT):
-                return {CellType.FLOOR}
+                return {CellType.FLOOR,
+                        CellType.SWAMP_LITE,
+                        CellType.SWAMP_MEDIUM,
+                        CellType.SWAMP_HEAVY}
             case (CellType.WALL_CORNER_TR, Directions.LEFT):
                 return {CellType.WALL_HORIZONTAL,
                         CellType.WALL_CORNER_BL}
@@ -121,7 +133,10 @@ class Maze:
                         CellType.WALL_CORNER_BL}
 
             case (CellType.WALL_CORNER_BL, Directions.LEFT | Directions.DOWN):
-                return {CellType.FLOOR}
+                return {CellType.FLOOR,
+                        CellType.SWAMP_LITE,
+                        CellType.SWAMP_MEDIUM,
+                        CellType.SWAMP_HEAVY}
             case (CellType.WALL_CORNER_BL, Directions.RIGHT):
                 return {CellType.WALL_HORIZONTAL,
                         CellType.WALL_CORNER_TR}
@@ -131,7 +146,10 @@ class Maze:
                         CellType.WALL_CORNER_TR}
 
             case (CellType.WALL_CORNER_BR, Directions.RIGHT | Directions.DOWN):
-                return {CellType.FLOOR}
+                return {CellType.FLOOR,
+                        CellType.SWAMP_LITE,
+                        CellType.SWAMP_MEDIUM,
+                        CellType.SWAMP_HEAVY}
             case (CellType.WALL_CORNER_BR, Directions.LEFT):
                 return {CellType.WALL_HORIZONTAL,
                         CellType.WALL_CORNER_TL}

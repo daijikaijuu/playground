@@ -16,6 +16,10 @@ class CellType(Enum):
     WALL_L_CROSS = (10, '├', 0.1)
     WALL_R_CROSS = (11, '┤', 0.1)
 
+    SWAMP_LITE = (20, '░', 0.05)
+    SWAMP_MEDIUM = (21, '▒', 0.02)
+    SWAMP_HEAVY = (22, '▓', 0.005)
+
     START = (40, 's', 0.0)
     FINISH = (41, 'f', 0.0)
 
