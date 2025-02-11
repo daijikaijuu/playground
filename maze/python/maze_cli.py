@@ -1,19 +1,20 @@
-import maze_lib
+from maze_lib import Maze
 
 
-def generate_maze(width: int, height: int):
+def generate_maze(width: int, height: int) -> Maze:
     while True:
         try:
-            maze = maze_lib.Maze(width, height, False)
+            maze = Maze(width, height, False)
             maze.generate_maze()
             maze.print_maze()
-            return
+            return maze
         except ValueError:
             print("Failed to generate maze. Retrying...")
 
 
 def main() -> None:
-    generate_maze(40, 20)
+    maze = generate_maze(40, 20)
+    print(maze)
 
 
 if __name__ == "__main__":

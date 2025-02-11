@@ -2,7 +2,7 @@ from maze_lib.path_solving.path_solving import PathSolving
 
 
 class DFS(PathSolving):
-    def find_path(self):
+    def find_path(self) -> bool:
         stack = [self.start]
         visited = set()
 
@@ -15,3 +15,6 @@ class DFS(PathSolving):
 
             if current == self.finish:
                 return True
+
+    def print_step(self):
+        pass
