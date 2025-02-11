@@ -1,6 +1,7 @@
+import time
 from abc import ABC, abstractmethod
 
-from maze_lib import Cell, CellType, Directions, Maze
+from maze_lib import Cell, Directions, Maze
 from maze_lib.types import Point
 
 
@@ -9,8 +10,12 @@ class PathSolving(ABC):
     start: tuple[Point, Cell]
     finish: tuple[Point, Cell]
 
-    def __init__(self, maze: Maze):
+    step_delay: float
+
+    def __init__(self, maze: Maze, step_delay: float):
         self.maze = maze
+
+        self.step_delay = step_delay
 
         start, finish = self.maze.find_start_and_finish()
         self.start = start, self.maze.grid[start[0]][start[1]]
@@ -38,6 +43,5 @@ class PathSolving(ABC):
     def find_path(self):
         pass
 
-    @abstractmethod
     def print_step(self):
-        pass
+        time.sleep(self.step_delay)

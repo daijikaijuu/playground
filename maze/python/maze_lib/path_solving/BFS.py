@@ -1,5 +1,3 @@
-import time
-
 from maze_lib.path_solving.path_solving import PathSolving
 
 
@@ -25,7 +23,6 @@ class BFS(PathSolving):
             for neighbor in neighbors:
                 if neighbor not in self.visited:
                     stack.append(neighbor)
-            time.sleep(0.1)
 
     def print_step(self):
         print('\033[2J\033[H')
@@ -36,3 +33,4 @@ class BFS(PathSolving):
                 else:
                     print(cell.cell_type.graphic, end='')
             print()
+        super().print_step()
