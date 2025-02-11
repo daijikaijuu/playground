@@ -6,7 +6,6 @@ def generate_maze(width: int, height: int) -> Maze:
         try:
             maze = Maze(width, height, False)
             maze.generate_maze()
-            maze.print_maze()
             return maze
         except ValueError:
             print("Failed to generate maze. Retrying...")
@@ -15,7 +14,8 @@ def generate_maze(width: int, height: int) -> Maze:
 def main() -> None:
     maze = generate_maze(40, 20)
     dfs = BFS(maze)
-    dfs.find_path()
+    if not dfs.find_path():
+        print("Unsolvable")
 
 
 if __name__ == "__main__":

@@ -1,3 +1,5 @@
+import time
+
 from maze_lib.path_solving.path_solving import PathSolving
 
 
@@ -22,16 +24,15 @@ class BFS(PathSolving):
             neighbors = self.get_neighbors(col, row, valid=True)
             for neighbor in neighbors:
                 if neighbor not in self.visited:
-                    # print(neighbor)
                     stack.append(neighbor)
+            time.sleep(0.1)
 
     def print_step(self):
-        print('\033[0J\033[H')
+        print('\033[2J\033[H')
         for r, row in enumerate(self.maze.grid):
             for c, cell in enumerate(row):
                 if ((r, c), cell) in self.visited:
-                    print('X', end='')
+                    print('\033[1;30;44m*\033[1;0m', end='')
                 else:
                     print(cell.cell_type.graphic, end='')
             print()
-        print('-----------')
