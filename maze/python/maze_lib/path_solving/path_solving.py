@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
-from maze_lib import Cell, Directions, Maze, Point
+from maze_lib import Cell, CellType, Directions, Maze
+from maze_lib.types import Point
 
 
 class PathSolving(ABC):
@@ -18,18 +19,20 @@ class PathSolving(ABC):
     def get_cell(self, col: int, row: int) -> tuple[Point, Cell]:
         return (col, row), self.maze.grid[row][col]
 
-    def get_neighbors(self, col: int, row: int) -> list[tuple[Point, Cell]]:
+    def get_neighbors(self, col: int, row: int, valid: bool = True) \
+            -> list[tuple[Point, Cell]]:
         """Returns valid neighbors for the current cell."""
         neighbors = []
         for dr, dc in Directions.get_directions():
             r, c = row + dr, col + dc
-            if 0 <= r < self.maze.height and 0 <= c < self.maze.width:
-                neighbors.append(((r, c), self.maze.grid[r][c]))
+            if 1 <= r < self.maze.height - 1 and 1 <= c < self.maze.width - 1:
+                cell = self.maze.grid[r][c]
+                if valid:
+                    if cell.cell_type.walkable > 0.0:
+                        neighbors.append(((r, c), self.maze.grid[r][c]))
+                else:
+                    neighbors.append(((r, c), self.maze.grid[r][c]))
         return neighbors
-
-    def is_valid_path(self, col: int, row: int) -> bool:
-        cell = self.maze.grid[row][col]
-        pass
 
     @abstractmethod
     def find_path(self):

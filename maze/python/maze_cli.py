@@ -1,4 +1,4 @@
-from maze_lib import Maze
+from maze_lib import BFS, Maze
 
 
 def generate_maze(width: int, height: int) -> Maze:
@@ -14,7 +14,8 @@ def generate_maze(width: int, height: int) -> Maze:
 
 def main() -> None:
     maze = generate_maze(40, 20)
-    print(maze)
+    dfs = BFS(maze)
+    dfs.find_path()
 
 
 if __name__ == "__main__":
