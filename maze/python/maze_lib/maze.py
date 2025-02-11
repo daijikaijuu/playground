@@ -305,21 +305,24 @@ class Maze:
                 entropy = len(cell.possible_types)
                 i = cell.cell_type.graphic if cell.cell_type else '?'
 
-                # Determine the color based on entropy
-                if r == hr and c == hc:
-                    # Highlight the current cell in red
-                    print(f"\033[5m{i}\033[0m", end='')  # Red color
-                else:
-                    # Map entropy to a grayscale gradient (30-37 are ANSI grayscale codes)
-                    if entropy > 0:
-                        # Scale entropy to 30-37
-                        gray_level = int(30 + (entropy / max_entropy) * 7)
-                        # Clamp to valid range
-                        gray_level = min(max(gray_level, 30), 37)
-                        # print(gray_level)
-                        print(f"\033[{gray_level}m{i}\033[0m",
-                              end='')  # Apply grayscale
+                if self.debug:
+                    # Determine the color based on entropy
+                    if r == hr and c == hc:
+                        # Highlight the current cell in red
+                        print(f"\033[5m{i}\033[0m", end='')  # Red color
                     else:
-                        # Default color if max_entropy is 0
-                        print(f'\033[47m{i}\033[0m', end='')
+                        # Map entropy to a grayscale gradient (30-37 are ANSI grayscale codes)
+                        if entropy > 0:
+                            # Scale entropy to 30-37
+                            gray_level = int(30 + (entropy / max_entropy) * 7)
+                            # Clamp to valid range
+                            gray_level = min(max(gray_level, 30), 37)
+                            # print(gray_level)
+                            print(f"\033[{gray_level}m{i}\033[0m",
+                                  end='')  # Apply grayscale
+                        else:
+                            # Default color if max_entropy is 0
+                            print(f'\033[47m{i}\033[0m', end='')
+                else:
+                    print(i, end='')
             print('')  # Newline after each row
