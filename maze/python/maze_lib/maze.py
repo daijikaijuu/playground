@@ -14,7 +14,6 @@ class Maze:
         self.width = width
         self.height = height
         self.debug = debug
-        self.grid = [[Cell() for _ in range(width)] for _ in range(height)]
 
     def get_neighbors(self, row: int, col: int) -> list[Point]:
         """Get valid neighboring cells."""
@@ -254,6 +253,8 @@ class Maze:
 
     def generate_maze(self):
         """Generate the maze using Wave Function Collapse algorithm"""
+        self.grid = [[Cell() for _ in range(self.width)]
+                     for _ in range(self.height)]
         for row in range(self.height):
             for col in range(self.width):
                 if row == 0 or row == self.height - 1 or col == 0 or col == self.width - 1:

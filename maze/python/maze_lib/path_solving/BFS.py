@@ -13,7 +13,8 @@ class BFS(PathSolving):
 
             self.visited.add(current)
 
-            self.print_step()
+            if self.debug:
+                self.print_step()
 
             if current == self.finish:
                 return True

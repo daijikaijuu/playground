@@ -11,11 +11,13 @@ class PathSolving(ABC):
     finish: tuple[Point, Cell]
 
     step_delay: float
+    debug: bool
 
-    def __init__(self, maze: Maze, step_delay: float):
+    def __init__(self, maze: Maze, step_delay: float, debug: bool = False):
         self.maze = maze
 
         self.step_delay = step_delay
+        self.debug = debug
 
         start, finish = self.maze.find_start_and_finish()
         self.start = start, self.maze.grid[start[0]][start[1]]
