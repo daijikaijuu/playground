@@ -1,7 +1,7 @@
 import argparse
 
 from maze_generator import generate_maze
-from maze_lib import BFS, DFS
+from maze_lib import BFS, DFS, Dijkstra
 
 
 def main(args: argparse.Namespace) -> None:
@@ -12,6 +12,8 @@ def main(args: argparse.Namespace) -> None:
             alg = BFS(maze, step_delay=args.timeout, debug=True)
         case 'DFS':
             alg = DFS(maze, step_delay=args.timeout, debug=True)
+        case 'dijkstra':
+            alg = Dijkstra(maze, step_delay=args.timeout, debug=True)
     if not alg.find_path():
         print("Unsolvable")
 
@@ -29,7 +31,7 @@ def parse_args() -> argparse.Namespace:
                         help="Time delay between pathfinding steps")
     parser.add_argument('-a', '--algorithm', default='BFS',
                         dest='algorithm',
-                        choices=['BFS', 'DFS'],
+                        choices=['BFS', 'DFS', 'dijkstra'],
                         help='Pathfinding algorithm to use')
     return parser.parse_args()
 
