@@ -6,7 +6,12 @@ from maze_lib import BFS, DFS
 
 def main(args: argparse.Namespace) -> None:
     maze = generate_maze(40, 20)
-    alg = BFS(maze, step_delay=args.timeout, debug=True)
+    alg = None
+    match args.algorithm:
+        case 'BFS':
+            alg = BFS(maze, step_delay=args.timeout, debug=True)
+        case 'DFS':
+            alg = DFS(maze, step_delay=args.timeout, debug=True)
     if not alg.find_path():
         print("Unsolvable")
 
@@ -22,6 +27,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("-t", "--timeout", type=float, default=0.1,
                         dest='timeout',
                         help="Time delay between pathfinding steps")
+    parser.add_argument('-a', '--algorithm', default='BFS',
+                        dest='algorithm',
+                        choices=['BFS', 'DFS'],
+                        help='Pathfinding algorithm to use')
     return parser.parse_args()
 
 
