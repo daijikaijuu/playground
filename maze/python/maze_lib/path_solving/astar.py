@@ -7,22 +7,23 @@ from maze_lib.types import Point
 from .path_solving import PathSolving
 
 
-class Dijkstra(PathSolving):
-    """Dijkstra path finding algorithm"""
+class AStar(PathSolving):
+    """A* path finding algorithm"""
 
     def __init__(self, maze: Maze, step_delay: float, debug: bool = False):
         super().__init__(maze, step_delay, debug)
         self.path = []
 
     def find_path(self) -> bool:
-        # Priority queue to store (distance, current_node)
-        priority_queue = [(0, self.start)]
+        """Find the path using A* algorithm."""
+        priority_queue = [(0, 0, self.start)]
         self.visited = set()
-        self.distances = {self.start: 0}
+        self.g_costs = {self.start: 0}
+        self.f_costs = {self.start: 0}
         self.previous = {}
 
         while priority_queue:
-            current_distance, current_node = heapq.heappop(priority_queue)
+            _, current_g_cost, current_node = heapq.heappop(priority_queue)
             if current_node in self.visited:
                 continue
             self.visited.add(current_node)
@@ -34,27 +35,36 @@ class Dijkstra(PathSolving):
                 self.reconstruct_path()
                 return True
 
-            (row, col), cell = current_node
+            (row, col), _ = current_node
             neighbors = self.get_neighbors(col, row, valid=True)
             for neighbor in neighbors:
                 if neighbor in self.visited:
                     continue
 
-                neighbor_distance = current_distance + \
+                neighbor_g_cost = current_g_cost + \
                     self.get_edge_weight(current_node, neighbor)
-                if neighbor not in self.distances or \
-                        neighbor_distance < self.distances[neighbor]:
-                    self.distances[neighbor] = neighbor_distance
+                neighbor_h_cost = self.heuristic(neighbor)
+                neighbor_f_cost = neighbor_g_cost + neighbor_h_cost
+
+                if neighbor not in self.g_costs \
+                        or neighbor_g_cost < self.g_costs[neighbor]:
+                    self.g_costs[neighbor] = neighbor_g_cost
+                    self.f_costs[neighbor] = neighbor_f_cost
                     self.previous[neighbor] = current_node
                     heapq.heappush(
-                        priority_queue, (neighbor_distance, neighbor))
+                        priority_queue,
+                        (neighbor_f_cost, neighbor_g_cost, neighbor))
         return False
 
-    def get_edge_weight(self,
-                        current_node: tuple[Point, Cell],
+    def get_edge_weight(self, current_node: tuple[Point, Cell],
                         neighbor: tuple[Point, Cell]) -> float:
         current_node_weight = current_node[1].cell_type.walkable
         return 1.0 + (1.0 - current_node_weight)
+
+    def heuristic(self, node: tuple[Point, Cell]) -> float:
+        (r, c), _ = node
+        (fr, fc), _ = self.finish
+        return abs(r - fr) + abs(c - fc)
 
     def reconstruct_path(self):
         current = self.finish
