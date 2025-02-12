@@ -1,7 +1,8 @@
 import heapq
 import sys
 
-from maze_lib import Maze
+from maze_lib import Cell, Maze
+from maze_lib.types import Point
 
 from .path_solving import PathSolving
 
@@ -41,17 +42,19 @@ class Dijkstra(PathSolving):
 
                 neighbor_distance = current_distance + \
                     self.get_edge_weight(current_node, neighbor)
-                if neighbor not in self.distances or neighbor_distance < self.distances[neighbor]:
+                if neighbor not in self.distances or \
+                        neighbor_distance < self.distances[neighbor]:
                     self.distances[neighbor] = neighbor_distance
                     self.previous[neighbor] = current_node
                     heapq.heappush(
                         priority_queue, (neighbor_distance, neighbor))
         return False
 
-    def get_edge_weight(self, current_node, neighbor):
-        print(current_node)
-        print(neighbor)
-        return 1
+    def get_edge_weight(self,
+                        current_node: tuple[Point, Cell],
+                        neighbor: tuple[Point, Cell]) -> float:
+        current_node_weight = current_node[1].cell_type.walkable
+        return 1.0 + (1.0 - current_node_weight)
 
     def reconstruct_path(self):
         current = self.finish
@@ -61,7 +64,7 @@ class Dijkstra(PathSolving):
             current = self.previous[current]
         path.append(self.start)
         path.reverse()
-        self.path = path        # if sys.stdout.isatty():
+        self.path = path
         self.print_step()
 
     def print_step(self):
