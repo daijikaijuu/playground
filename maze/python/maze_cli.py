@@ -1,13 +1,13 @@
 import argparse
 
 from maze_generator import generate_maze
-from maze_lib import BFS
+from maze_lib import BFS, DFS
 
 
 def main(args: argparse.Namespace) -> None:
     maze = generate_maze(40, 20)
-    dfs = BFS(maze, step_delay=args.timeout, debug=True)
-    if not dfs.find_path():
+    alg = BFS(maze, step_delay=args.timeout, debug=True)
+    if not alg.find_path():
         print("Unsolvable")
 
 
