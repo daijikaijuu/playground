@@ -61,19 +61,18 @@ class Dijkstra(PathSolving):
             current = self.previous[current]
         path.append(self.start)
         path.reverse()
-        self.path = path
+        self.path = path        # if sys.stdout.isatty():
+        self.print_step()
 
     def print_step(self):
         if sys.stdout.isatty():
             print('\033[2J\033[H')  # Clear screen
         for r, row in enumerate(self.maze.grid):
             for c, cell in enumerate(row):
-                if (r, c) in self.visited:
-                    # Highlight visited nodes
-                    print('\033[1;30;44m*\033[1;0m', end='')
-                elif (r, c) in self.path:
-                    # Highlight path nodes
+                if ((r, c), cell) in self.path:
                     print('\033[1;30;42m#\033[1;0m', end='')
+                elif ((r, c), cell) in self.visited:
+                    print('\033[1;30;44m*\033[1;0m', end='')
                 else:
                     print(cell.cell_type.graphic, end='')  # Print cell type
             print()
