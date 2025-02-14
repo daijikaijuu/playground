@@ -3,7 +3,7 @@ from tkinter import ttk, filedialog
 import argparse  
 
 from maze_generator import generate_maze, save_maze_to_json, load_maze_from_json
-from maze_lib import CellType, Maze, BFS, DFS, AStar, Dijkstra
+from maze_lib import CellType, Maze, BFS, DFS, AStar, Dijkstra, Backtracking
 
 CELL_SIZE = 20
 MAZE_WIDTH = 40
@@ -37,6 +37,8 @@ def draw_maze(canvas, maze: Maze):
             # Overlay visualization colors
             if cell.in_path:
                 fill = 'yellow'  # Path cells
+            elif cell.discarded:
+                fill = '#FF6B6B'  # Light red for discarded paths
             elif cell.visited and cell.cell_type not in [CellType.START, CellType.FINISH]:
                 fill = '#FFB6C1'  # Light pink for visited cells
                 
@@ -64,6 +66,8 @@ def run_algorithm(maze: Maze, algorithm_name: str, step_delay: float = 0.1):
             alg = Dijkstra(maze, step_delay=step_delay, debug=False)
         case 'A*':
             alg = AStar(maze, step_delay=step_delay, debug=False)
+        case 'Backtracking':
+            alg = Backtracking(maze, step_delay=step_delay, debug=False)
     
     if alg:
         # Store algorithm reference for stopping
@@ -78,7 +82,6 @@ def run_algorithm(maze: Maze, algorithm_name: str, step_delay: float = 0.1):
                 if alg.step():  # If step was successful, schedule next step
                     root.after(int(step_delay * 1000), solve_step)
                 else:
-                    print("Unsolvable")
                     maze.current_algorithm = None
             except StopIteration:
                 maze.current_algorithm = None
@@ -124,7 +127,7 @@ def main():
     # Algorithm selection
     ttk.Label(control_frame, text="Algorithm:").pack(pady=5)
     algorithm_var = tk.StringVar(value="BFS")
-    algorithms = ['BFS', 'DFS', 'Dijkstra', 'A*']
+    algorithms = ['BFS', 'DFS', 'Dijkstra', 'A*', 'Backtracking']
     algorithm_combo = ttk.Combobox(control_frame, textvariable=algorithm_var, 
                                  values=algorithms, state='readonly')
     algorithm_combo.pack(pady=5)

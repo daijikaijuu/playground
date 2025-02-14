@@ -82,3 +82,7 @@ class PathSolving(ABC):
     def mark_path(self, point: Point):
         """Mark a cell as part of the solution path"""
         self.maze.mark_path(point)
+
+    def mark_discarded(self, point: Point):
+        """Mark a cell as part of a discarded path"""
+        self.maze.grid[point[0]][point[1]].discarded = True

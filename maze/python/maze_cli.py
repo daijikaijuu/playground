@@ -1,7 +1,7 @@
 import argparse
 import sys
 from maze_generator import generate_maze, save_maze_to_json, load_maze_from_json
-from maze_lib import BFS, DFS, AStar, Dijkstra
+from maze_lib import BFS, DFS, AStar, Dijkstra, Backtracking
 
 
 def main(args: argparse.Namespace) -> None:
@@ -36,6 +36,8 @@ def main(args: argparse.Namespace) -> None:
             alg = Dijkstra(maze, step_delay=args.timeout, debug=True)
         case 'astar':
             alg = AStar(maze, step_delay=args.timeout, debug=True)
+        case 'backtracking':
+            alg = Backtracking(maze, step_delay=args.timeout, debug=True)
     if not alg.find_path():
         print("Unsolvable")
 
@@ -53,7 +55,7 @@ def parse_args() -> argparse.Namespace:
                         help="Time delay between pathfinding steps")
     parser.add_argument('-a', '--algorithm', default=None,
                         dest='algorithm',
-                        choices=['BFS', 'DFS', 'dijkstra', 'astar'],
+                        choices=['BFS', 'DFS', 'dijkstra', 'astar', 'backtracking'],
                         help='Pathfinding algorithm to use')
     parser.add_argument('-s', '--save',
                         help='Save maze to specified file')

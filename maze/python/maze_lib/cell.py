@@ -35,6 +35,7 @@ class Cell:
     possible_types: set[CellType]
     visited: bool
     in_path: bool
+    discarded: bool
 
     def __init__(self, cell_type: CellType | None = None):
         self.cell_type = cell_type
@@ -48,6 +49,7 @@ class Cell:
 
         self.visited = False  # For pathfinding visualization
         self.in_path = False  # For showing the solution path
+        self.discarded = False  # For showing backtracked paths
 
     def collapse(self, cell_type: CellType | None = None):
         """Collapse the cell to a specific type, or to the single remaining type"""

@@ -347,8 +347,9 @@ class Maze:
         cell.in_path = True
     
     def clear_marks(self):
-        """Clear all visited and path markings"""
+        """Clear all visualization marks"""
         for row in self.grid:
             for cell in row:
                 cell.visited = False
                 cell.in_path = False
+                cell.discarded = False
