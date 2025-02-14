@@ -48,8 +48,9 @@ class PathSolving(ABC):
         try:
             next(self._find_path_iter)
             return True
-        except StopIteration:
-            return False
+        except StopIteration as e:
+            # If the generator returned a value, use it; otherwise assume False
+            return e.value if e.value is not None else False
 
     @abstractmethod
     def _find_path_generator(self):
@@ -58,9 +59,18 @@ class PathSolving(ABC):
 
     def find_path(self) -> bool:
         """Run the complete pathfinding algorithm"""
-        for _ in self._find_path_generator():
-            pass
-        return True
+        generator = self._find_path_generator()
+        result = False
+        
+        try:
+            while True:
+                next(generator)
+                if self.debug:
+                    self.print_step()
+        except StopIteration as e:
+            result = bool(e.value)
+        
+        return result
 
     def print_step(self):
         time.sleep(self.step_delay)

@@ -51,7 +51,9 @@ class DFS(PathSolving):
             print('\033[2J\033[H')
         for r, row in enumerate(self.maze.grid):
             for c, cell in enumerate(row):
-                if ((r, c), cell) in self.visited:
+                if cell.in_path:
+                    print('\033[1;30;42m#\033[1;0m', end='')
+                elif cell.visited:
                     print('\033[1;30;44m*\033[1;0m', end='')
                 else:
                     print(cell.cell_type.graphic, end='')

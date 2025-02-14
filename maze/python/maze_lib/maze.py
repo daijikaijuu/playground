@@ -52,6 +52,9 @@ class Maze:
            current cell.
         """
         match (current_type, direction):
+            case (CellType.START | CellType.FINISH, Directions.UP | Directions.DOWN | Directions.LEFT | Directions.RIGHT):
+                return {CellType.FLOOR}
+
             case (CellType.SWAMP_HEAVY, Directions.UP | Directions.DOWN | Directions.LEFT | Directions.RIGHT):
                 return {CellType.SWAMP_LITE, CellType.SWAMP_MEDIUM}
 

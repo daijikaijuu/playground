@@ -12,7 +12,7 @@ def main(args: argparse.Namespace) -> None:
             print(f"Error: Could not load maze from {args.load}")
             sys.exit(1)
     else:
-        maze = generate_maze(args.width, args.height)
+        maze = generate_maze(args.width, args.height, ensure_solvable=True)
     
     # Save maze if specified
     if args.save:

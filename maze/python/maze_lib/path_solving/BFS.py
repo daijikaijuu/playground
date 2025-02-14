@@ -26,7 +26,8 @@ class BFS(PathSolving):
 
             if current == self.finish:
                 self.reconstruct_path()
-                return True
+                yield
+                return True  # Found path
 
             (row, col), _ = current
             neighbors = self.get_neighbors(col, row, valid=True)
@@ -35,9 +36,9 @@ class BFS(PathSolving):
                     self.previous[neighbor] = current
                     self.queue.append(neighbor)
             
-            yield  # Pause here to show progress
+            yield
         
-        return False
+        return False  # No path found
 
     def reconstruct_path(self):
         """Reconstruct and mark the solution path"""
@@ -52,7 +53,9 @@ class BFS(PathSolving):
             print('\033[2J\033[H')
         for r, row in enumerate(self.maze.grid):
             for c, cell in enumerate(row):
-                if ((r, c), cell) in self.visited:
+                if cell.in_path:
+                    print('\033[1;30;42m#\033[1;0m', end='')
+                elif cell.visited:
                     print('\033[1;30;44m*\033[1;0m', end='')
                 else:
                     print(cell.cell_type.graphic, end='')

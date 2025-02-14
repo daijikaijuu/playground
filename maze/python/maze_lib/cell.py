@@ -3,7 +3,7 @@ from enum import Enum
 
 
 class CellType(Enum):
-    FLOOR = (0, ' ', 0.8, 1.0)
+    FLOOR = (0, ' ', 0.98, 1.0)
     WALL_HORIZONTAL = (1, '─', 0.3, 0.0)
     WALL_VERTICAL = (2, '│', 0.05, 0.0)
     WALL_CORNER_TL = (3, '┌', 0.1, 0.0)
@@ -38,7 +38,14 @@ class Cell:
 
     def __init__(self, cell_type: CellType | None = None):
         self.cell_type = cell_type
-        self.possible_types = set(CellType) if cell_type is None else {cell_type}
+        if cell_type is None:
+            self.cell_type = CellType.FLOOR
+            self.possible_types = set(CellType) ^ {
+                CellType.START, CellType.FINISH}
+        else:
+            self.cell_type = cell_type
+            self.possible_types = {cell_type}
+
         self.visited = False  # For pathfinding visualization
         self.in_path = False  # For showing the solution path
 
