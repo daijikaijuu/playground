@@ -3,7 +3,7 @@ from tkinter import ttk, filedialog
 import argparse  
 
 from maze_generator import generate_maze, save_maze_to_json, load_maze_from_json
-from maze_lib import CellType, Maze, BFS, DFS, AStar, Dijkstra, Backtracking
+from maze_lib import CellType, Maze, BFS, DFS, AStar, Dijkstra, Backtracking, BellmanFord
 
 CELL_SIZE = 20
 MAZE_WIDTH = 40
@@ -77,6 +77,8 @@ def run_algorithm(maze: Maze, algorithm_name: str, step_delay: float = 0.1):
             alg = AStar(maze, step_delay=step_delay, debug=False)
         case 'Backtracking':
             alg = Backtracking(maze, step_delay=step_delay, debug=False)
+        case 'Bellman-Ford':
+            alg = BellmanFord(maze, step_delay=step_delay, debug=False)
     
     if alg:
         # Store algorithm reference for stopping
@@ -136,7 +138,7 @@ def main():
     # Algorithm selection
     ttk.Label(control_frame, text="Algorithm:").pack(pady=5)
     algorithm_var = tk.StringVar(value="BFS")
-    algorithms = ['BFS', 'DFS', 'Dijkstra', 'A*', 'Backtracking']
+    algorithms = ['BFS', 'DFS', 'Dijkstra', 'A*', 'Backtracking', 'Bellman-Ford']
     algorithm_combo = ttk.Combobox(control_frame, textvariable=algorithm_var, 
                                  values=algorithms, state='readonly')
     algorithm_combo.pack(pady=5)

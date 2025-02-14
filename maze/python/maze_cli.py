@@ -3,7 +3,7 @@ import sys
 import os
 from colorama import init, Fore, Style
 from maze_generator import generate_maze, save_maze_to_json, load_maze_from_json
-from maze_lib import BFS, DFS, AStar, Dijkstra, Backtracking
+from maze_lib import BFS, DFS, AStar, Dijkstra, Backtracking, BellmanFord
 from gettext import gettext as _
 
 # Initialize colorama
@@ -55,6 +55,8 @@ def main(args: argparse.Namespace) -> None:
             alg = AStar(maze, step_delay=args.timeout, debug=True)
         case 'backtracking':
             alg = Backtracking(maze, step_delay=args.timeout, debug=True)
+        case 'bellman-ford':
+            alg = BellmanFord(maze, step_delay=args.timeout, debug=True)
             
     if not alg.find_path():
         print(f"{Fore.RED}Maze is unsolvable!{Style.RESET_ALL}")
@@ -77,7 +79,7 @@ def parse_args() -> argparse.Namespace:
                         help="Time delay between pathfinding steps")
     parser.add_argument('-a', '--algorithm', default=None,
                         dest='algorithm',
-                        choices=['BFS', 'DFS', 'dijkstra', 'astar', 'backtracking'],
+                        choices=['BFS', 'DFS', 'dijkstra', 'astar', 'backtracking', 'bellman-ford'],
                         help='Pathfinding algorithm to use')
     parser.add_argument('-s', '--save',
                         help='Save maze to specified file')
