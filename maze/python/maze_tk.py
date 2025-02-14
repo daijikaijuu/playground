@@ -162,7 +162,13 @@ def main():
     ttk.Button(control_frame, text="New Maze", 
                command=on_new_maze).pack(pady=10)
 
-    update_canvas(root, canvas, maze)
+    def update_canvas_wrapper():
+        nonlocal maze  # Add this to access the maze variable
+        draw_maze(canvas, maze)
+        root.after(16, update_canvas_wrapper)  # Call wrapper instead of original function
+
+    # Replace the update_canvas call with our wrapper
+    update_canvas_wrapper()  # Use wrapper instead of update_canvas
     root.mainloop()
 
 
