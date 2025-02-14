@@ -25,7 +25,7 @@ def generate_maze(width: int, height: int, ensure_solvable: bool = True) \
         except ValueError:
             print("Failed to generate maze. Retrying...")
 
-def save_maze(maze: Maze, filename: str) -> None:
+def save_maze_to_json(maze: Maze, filename: str) -> None:
     """Save maze to a JSON file"""
     maze_data = {
         'width': maze.width,
@@ -36,7 +36,7 @@ def save_maze(maze: Maze, filename: str) -> None:
     with open(filename, 'w') as f:
         json.dump(maze_data, f)
 
-def load_maze(filename: str) -> Optional[Maze]:
+def load_maze_from_json(filename: str) -> Optional[Maze]:
     """Load maze from a JSON file"""
     try:
         with open(filename, 'r') as f:

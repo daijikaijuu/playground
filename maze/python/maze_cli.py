@@ -1,13 +1,13 @@
 import argparse
 import sys
-from maze_generator import generate_maze, save_maze, load_maze
+from maze_generator import generate_maze, save_maze_to_json, load_maze_from_json
 from maze_lib import BFS, DFS, AStar, Dijkstra
 
 
 def main(args: argparse.Namespace) -> None:
     # Load maze if specified
     if args.load:
-        maze = load_maze(args.load)
+        maze = load_maze_from_json(args.load)
         if maze is None:
             print(f"Error: Could not load maze from {args.load}")
             sys.exit(1)
@@ -16,7 +16,7 @@ def main(args: argparse.Namespace) -> None:
     
     # Save maze if specified
     if args.save:
-        save_maze(maze, args.save)
+        save_maze_to_json(maze, args.save)
         print(f"Maze saved to {args.save}")
         if not args.algorithm:
             return

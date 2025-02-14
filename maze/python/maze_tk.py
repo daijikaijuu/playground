@@ -1,7 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 
-from maze_generator import generate_maze
+from maze_generator import generate_maze, save_maze_to_json, load_maze_from_json
 from maze_lib import CellType, Maze, BFS, DFS, AStar, Dijkstra
 
 CELL_SIZE = 20
@@ -122,10 +122,42 @@ def main():
     ttk.Button(control_frame, text="Run Algorithm", 
                command=on_run).pack(pady=10)
     
+    # Save/Load buttons
+    def save_maze():
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".maze",
+            filetypes=[("Maze files", "*.maze"), ("All files", "*.*")]
+        )
+        if file_path:
+            save_maze_to_json(maze, file_path)  # Using the function from maze_generator
+    
+    def load_maze():
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Maze files", "*.maze"), ("All files", "*.*")]
+        )
+        if file_path:
+            nonlocal maze
+            loaded_maze = load_maze_from_json(file_path)  # Using the function from maze_generator
+            if loaded_maze:
+                maze = loaded_maze
+                maze.clear_marks()  # Clear any visualization marks
+                draw_maze(canvas, maze)  # Force immediate redraw
+            else:
+                print("Failed to load maze")
+    
+    ttk.Button(control_frame, text="Save Maze", 
+               command=save_maze).pack(pady=5)
+    ttk.Button(control_frame, text="Load Maze", 
+               command=load_maze).pack(pady=5)
+
+    # Add separator between save/load and new maze buttons
+    ttk.Separator(control_frame, orient='horizontal').pack(fill='x', pady=10)
+
     # New maze button
     def on_new_maze():
         nonlocal maze
         maze = generate_maze(MAZE_WIDTH, MAZE_HEIGHT, ensure_solvable=True)
+        draw_maze(canvas, maze)  # Force immediate redraw
     
     ttk.Button(control_frame, text="New Maze", 
                command=on_new_maze).pack(pady=10)
