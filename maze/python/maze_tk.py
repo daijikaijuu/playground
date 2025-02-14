@@ -65,13 +65,22 @@ def run_algorithm(maze: Maze, algorithm_name: str, step_delay: float = 0.1):
             alg = AStar(maze, step_delay=step_delay, debug=False)
     
     if alg:
+        # Store algorithm reference for stopping
+        maze.current_algorithm = alg
+        
         def solve_step():
+            # Check if algorithm was stopped
+            if not hasattr(maze, 'current_algorithm') or maze.current_algorithm != alg:
+                return
+                
             try:
                 if alg.step():  # If step was successful, schedule next step
                     root.after(int(step_delay * 1000), solve_step)
                 else:
                     print("Unsolvable")
+                    maze.current_algorithm = None
             except StopIteration:
+                maze.current_algorithm = None
                 pass  # Algorithm finished
         
         solve_step()  # Start the solving process
@@ -121,6 +130,16 @@ def main():
     
     ttk.Button(control_frame, text="Run Algorithm", 
                command=on_run).pack(pady=10)
+    
+    # Stop/Reset button
+    def on_stop():
+        if hasattr(maze, 'current_algorithm'):
+            delattr(maze, 'current_algorithm')
+        maze.clear_marks()
+        draw_maze(canvas, maze)  # Force immediate redraw
+    
+    ttk.Button(control_frame, text="Stop/Reset", 
+               command=on_stop).pack(pady=5)
     
     # Save/Load buttons
     def save_maze():
