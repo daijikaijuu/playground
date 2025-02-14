@@ -12,24 +12,23 @@ class Dijkstra(PathSolving):
 
     def __init__(self, maze: Maze, step_delay: float, debug: bool = False):
         super().__init__(maze, step_delay, debug)
-        self.path = []
+        self.priority_queue = []
+        self.previous = {}
+        self.distances = {}
 
-    def find_path(self) -> bool:
-        # Priority queue to store (distance, current_node)
-        priority_queue = [(0, self.start)]
+    def _find_path_generator(self):
+        self.priority_queue = [(0, self.start)]
         self.visited = set()
         self.distances = {self.start: 0}
         self.previous = {}
 
-        while priority_queue:
-            current_distance, current_node = heapq.heappop(priority_queue)
+        while self.priority_queue:
+            current_distance, current_node = heapq.heappop(self.priority_queue)
             if current_node in self.visited:
                 continue
+                
             self.visited.add(current_node)
-            self.mark_visited(current_node[0])  # Mark cell as visited
-
-            if self.debug:
-                self.print_step()
+            self.mark_visited(current_node[0])
 
             if current_node == self.finish:
                 self.reconstruct_path()
@@ -41,18 +40,17 @@ class Dijkstra(PathSolving):
                 if neighbor in self.visited:
                     continue
 
-                neighbor_distance = current_distance + \
-                    self.get_edge_weight(current_node, neighbor)
-                if neighbor not in self.distances or \
-                        neighbor_distance < self.distances[neighbor]:
+                neighbor_distance = current_distance + self.get_edge_weight(current_node, neighbor)
+                if neighbor not in self.distances or neighbor_distance < self.distances[neighbor]:
                     self.distances[neighbor] = neighbor_distance
                     self.previous[neighbor] = current_node
-                    heapq.heappush(
-                        priority_queue, (neighbor_distance, neighbor))
+                    heapq.heappush(self.priority_queue, (neighbor_distance, neighbor))
+            
+            yield  # Pause here to show progress
+        
         return False
 
-    def get_edge_weight(self,
-                        current_node: tuple[Point, Cell],
+    def get_edge_weight(self, current_node: tuple[Point, Cell],
                         neighbor: tuple[Point, Cell]) -> float:
         current_node_weight = current_node[1].cell_type.walkable
         return 1.0 + (1.0 - current_node_weight)
@@ -63,8 +61,6 @@ class Dijkstra(PathSolving):
             self.mark_path(current[0])  # Mark cell as part of path
             current = self.previous[current]
         self.mark_path(self.start[0])  # Mark start position
-        if self.debug:
-            self.print_step()
 
     def print_step(self):
         if sys.stdout.isatty():

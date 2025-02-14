@@ -39,34 +39,6 @@ class BFS(PathSolving):
         
         return False
 
-    def find_path(self) -> bool:
-        queue = deque([self.start])
-        self.visited = set()
-        self.previous = {self.start: None}  # Add this to track the path
-
-        while queue:
-            current = queue.popleft()
-            if current in self.visited:
-                continue
-
-            self.visited.add(current)
-            self.mark_visited(current[0])  # Mark cell as visited
-
-            if self.debug:
-                self.print_step()
-
-            if current == self.finish:
-                self.reconstruct_path()  # Add path reconstruction
-                return True
-
-            (row, col), _ = current
-            neighbors = self.get_neighbors(col, row, valid=True)
-            for neighbor in neighbors:
-                if neighbor not in self.visited:
-                    self.previous[neighbor] = current  # Track previous node
-                    queue.append(neighbor)
-        return False
-
     def reconstruct_path(self):
         """Reconstruct and mark the solution path"""
         current = self.finish
