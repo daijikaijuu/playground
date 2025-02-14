@@ -33,15 +33,14 @@ class CellType(Enum):
 class Cell:
     cell_type: CellType
     possible_types: set[CellType]
+    visited: bool
+    in_path: bool
 
     def __init__(self, cell_type: CellType | None = None):
-        if cell_type is None:
-            self.cell_type = CellType.FLOOR
-            self.possible_types = set(CellType) ^ {
-                CellType.START, CellType.FINISH}
-        else:
-            self.cell_type = cell_type
-            self.possible_types = {cell_type}
+        self.cell_type = cell_type
+        self.possible_types = set(CellType) if cell_type is None else {cell_type}
+        self.visited = False  # For pathfinding visualization
+        self.in_path = False  # For showing the solution path
 
     def collapse(self, cell_type: CellType | None = None):
         """Collapse the cell to a specific type, or to the single remaining type"""

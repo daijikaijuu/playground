@@ -41,9 +41,34 @@ class PathSolving(ABC):
                     neighbors.append(((r, c), self.maze.grid[r][c]))
         return neighbors
 
+    def step(self) -> bool:
+        """Execute one step of the pathfinding algorithm"""
+        if not hasattr(self, '_find_path_iter'):
+            self._find_path_iter = self._find_path_generator()
+        try:
+            next(self._find_path_iter)
+            return True
+        except StopIteration:
+            return False
+
     @abstractmethod
-    def find_path(self):
+    def _find_path_generator(self):
+        """Generator version of find_path that yields after each step"""
         pass
+
+    def find_path(self) -> bool:
+        """Run the complete pathfinding algorithm"""
+        for _ in self._find_path_generator():
+            pass
+        return True
 
     def print_step(self):
         time.sleep(self.step_delay)
+
+    def mark_visited(self, point: Point):
+        """Mark a cell as visited in the maze"""
+        self.maze.mark_visited(point)
+
+    def mark_path(self, point: Point):
+        """Mark a cell as part of the solution path"""
+        self.maze.mark_path(point)

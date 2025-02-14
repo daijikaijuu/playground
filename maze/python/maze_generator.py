@@ -16,9 +16,11 @@ def generate_maze(width: int, height: int, ensure_solvable: bool = True) \
                     maze.generate_maze()
                     bfs = BFS(maze, step_delay=0.0)
                     solvable = bfs.find_path()
+                maze.clear_marks()
                 return maze
             else:
                 maze.generate_maze()
+                maze.clear_marks()
                 return maze
         except ValueError:
             print("Failed to generate maze. Retrying...")

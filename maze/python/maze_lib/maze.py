@@ -330,3 +330,22 @@ class Maze:
                 else:
                     print(i, end='')
             print('')  # Newline after each row
+
+    def mark_visited(self, point: Point):
+        """Mark a cell as visited during pathfinding"""
+        row, col = point
+        cell = self.grid[row][col]
+        cell.visited = True
+    
+    def mark_path(self, point: Point):
+        """Mark a cell as part of the solution path"""
+        row, col = point
+        cell = self.grid[row][col]
+        cell.in_path = True
+    
+    def clear_marks(self):
+        """Clear all visited and path markings"""
+        for row in self.grid:
+            for cell in row:
+                cell.visited = False
+                cell.in_path = False

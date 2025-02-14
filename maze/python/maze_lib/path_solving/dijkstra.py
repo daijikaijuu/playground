@@ -26,6 +26,7 @@ class Dijkstra(PathSolving):
             if current_node in self.visited:
                 continue
             self.visited.add(current_node)
+            self.mark_visited(current_node[0])  # Mark cell as visited
 
             if self.debug:
                 self.print_step()
@@ -58,13 +59,10 @@ class Dijkstra(PathSolving):
 
     def reconstruct_path(self):
         current = self.finish
-        path = []
         while current in self.previous:
-            path.append(current)
+            self.mark_path(current[0])  # Mark cell as part of path
             current = self.previous[current]
-        path.append(self.start)
-        path.reverse()
-        self.path = path
+        self.mark_path(self.start[0])  # Mark start position
         if self.debug:
             self.print_step()
 

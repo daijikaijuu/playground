@@ -12,24 +12,25 @@ class AStar(PathSolving):
 
     def __init__(self, maze: Maze, step_delay: float, debug: bool = False):
         super().__init__(maze, step_delay, debug)
-        self.path = []
+        self.priority_queue = []
+        self.previous = {}
+        self.g_costs = {}
+        self.f_costs = {}
 
-    def find_path(self) -> bool:
-        """Find the path using A* algorithm."""
-        priority_queue = [(0, 0, self.start)]
+    def _find_path_generator(self):
+        self.priority_queue = [(0, 0, self.start)]
         self.visited = set()
         self.g_costs = {self.start: 0}
         self.f_costs = {self.start: 0}
         self.previous = {}
 
-        while priority_queue:
-            _, current_g_cost, current_node = heapq.heappop(priority_queue)
+        while self.priority_queue:
+            _, current_g_cost, current_node = heapq.heappop(self.priority_queue)
             if current_node in self.visited:
                 continue
+                
             self.visited.add(current_node)
-
-            if self.debug:
-                self.print_step()
+            self.mark_visited(current_node[0])
 
             if current_node == self.finish:
                 self.reconstruct_path()
@@ -41,19 +42,18 @@ class AStar(PathSolving):
                 if neighbor in self.visited:
                     continue
 
-                neighbor_g_cost = current_g_cost + \
-                    self.get_edge_weight(current_node, neighbor)
+                neighbor_g_cost = current_g_cost + self.get_edge_weight(current_node, neighbor)
                 neighbor_h_cost = self.heuristic(neighbor)
                 neighbor_f_cost = neighbor_g_cost + neighbor_h_cost
 
-                if neighbor not in self.g_costs \
-                        or neighbor_g_cost < self.g_costs[neighbor]:
+                if neighbor not in self.g_costs or neighbor_g_cost < self.g_costs[neighbor]:
                     self.g_costs[neighbor] = neighbor_g_cost
                     self.f_costs[neighbor] = neighbor_f_cost
                     self.previous[neighbor] = current_node
-                    heapq.heappush(
-                        priority_queue,
-                        (neighbor_f_cost, neighbor_g_cost, neighbor))
+                    heapq.heappush(self.priority_queue, (neighbor_f_cost, neighbor_g_cost, neighbor))
+            
+            yield  # Pause here to show progress
+        
         return False
 
     def get_edge_weight(self, current_node: tuple[Point, Cell],
@@ -68,13 +68,10 @@ class AStar(PathSolving):
 
     def reconstruct_path(self):
         current = self.finish
-        path = []
         while current in self.previous:
-            path.append(current)
+            self.mark_path(current[0])  # Mark cell as part of path
             current = self.previous[current]
-        path.append(self.start)
-        path.reverse()
-        self.path = path
+        self.mark_path(self.start[0])  # Mark start position
         if self.debug:
             self.print_step()
 
