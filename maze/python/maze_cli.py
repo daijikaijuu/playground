@@ -1,11 +1,31 @@
 import argparse
-
-from maze_generator import generate_maze
+import sys
+from maze_generator import generate_maze, save_maze, load_maze
 from maze_lib import BFS, DFS, AStar, Dijkstra
 
 
 def main(args: argparse.Namespace) -> None:
-    maze = generate_maze(40, 20)
+    # Load maze if specified
+    if args.load:
+        maze = load_maze(args.load)
+        if maze is None:
+            print(f"Error: Could not load maze from {args.load}")
+            sys.exit(1)
+    else:
+        maze = generate_maze(args.width, args.height)
+    
+    # Save maze if specified
+    if args.save:
+        save_maze(maze, args.save)
+        print(f"Maze saved to {args.save}")
+        if not args.algorithm:
+            return
+
+    if not args.algorithm:
+        # Just print the maze if no algorithm specified
+        maze.print_maze()
+        return
+
     alg = None
     match args.algorithm:
         case 'BFS':
@@ -31,10 +51,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("-t", "--timeout", type=float, default=0.1,
                         dest='timeout',
                         help="Time delay between pathfinding steps")
-    parser.add_argument('-a', '--algorithm', default='BFS',
+    parser.add_argument('-a', '--algorithm', default=None,
                         dest='algorithm',
                         choices=['BFS', 'DFS', 'dijkstra', 'astar'],
                         help='Pathfinding algorithm to use')
+    parser.add_argument('-s', '--save',
+                        help='Save maze to specified file')
+    parser.add_argument('-l', '--load',
+                        help='Load maze from specified file')
     return parser.parse_args()
 
 
