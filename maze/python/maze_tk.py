@@ -26,21 +26,30 @@ def draw_maze(canvas, maze: Maze):
                 case CellType.FINISH:
                     fill = 'blue'
                 case CellType.SWAMP_LITE:
-                    fill = '#00AA00'
+                    fill = '#00AA00'  # Light green
                 case CellType.SWAMP_MEDIUM:
-                    fill = '#006600'
+                    fill = '#006600'  # Medium green
                 case CellType.SWAMP_HEAVY:
-                    fill = '#003300'
+                    fill = '#003300'  # Dark green
                 case _:
                     fill = 'black'
             
-            # Overlay visualization colors
+            # Overlay visualization colors while preserving swamp visibility
             if cell.in_path:
-                fill = 'yellow'  # Path cells
+                if cell.cell_type in [CellType.SWAMP_LITE, CellType.SWAMP_MEDIUM, CellType.SWAMP_HEAVY]:
+                    fill = '#99FF66'  # Yellowish green for path through swamp
+                else:
+                    fill = 'yellow'  # Normal path color
             elif cell.discarded:
-                fill = '#FF6B6B'  # Light red for discarded paths
+                if cell.cell_type in [CellType.SWAMP_LITE, CellType.SWAMP_MEDIUM, CellType.SWAMP_HEAVY]:
+                    fill = '#FF9999'  # Pinkish red for discarded swamp paths
+                else:
+                    fill = '#FF6B6B'  # Normal discarded color
             elif cell.visited and cell.cell_type not in [CellType.START, CellType.FINISH]:
-                fill = '#FFB6C1'  # Light pink for visited cells
+                if cell.cell_type in [CellType.SWAMP_LITE, CellType.SWAMP_MEDIUM, CellType.SWAMP_HEAVY]:
+                    fill = '#CCFFCC'  # Light green for visited swamp cells
+                else:
+                    fill = '#FFB6C1'  # Normal visited color
                 
             canvas.create_rectangle(col*CELL_SIZE, row*CELL_SIZE,
                                   col*CELL_SIZE+CELL_SIZE, row*CELL_SIZE+CELL_SIZE,
