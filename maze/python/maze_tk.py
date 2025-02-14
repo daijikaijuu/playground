@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, filedialog
+import argparse  
 
 from maze_generator import generate_maze, save_maze_to_json, load_maze_from_json
 from maze_lib import CellType, Maze, BFS, DFS, AStar, Dijkstra
@@ -87,7 +88,21 @@ def run_algorithm(maze: Maze, algorithm_name: str, step_delay: float = 0.1):
 
 
 def main():
-    maze = generate_maze(MAZE_WIDTH, MAZE_HEIGHT, ensure_solvable=True)
+    # Add argument parsing
+    parser = argparse.ArgumentParser(description='Maze visualization and pathfinding')
+    parser.add_argument('--load', '-l', type=str, help='Load maze from specified file path')
+    args = parser.parse_args()
+
+    # Initialize maze based on arguments
+    if args.load:
+        loaded_maze = load_maze_from_json(args.load)
+        if loaded_maze:
+            maze = loaded_maze
+        else:
+            print(f"Failed to load maze from {args.load}, generating new maze instead")
+            maze = generate_maze(MAZE_WIDTH, MAZE_HEIGHT, ensure_solvable=True)
+    else:
+        maze = generate_maze(MAZE_WIDTH, MAZE_HEIGHT, ensure_solvable=True)
 
     global root  # Make root accessible to run_algorithm
     root = tk.Tk()
@@ -116,7 +131,7 @@ def main():
     
     # Step delay control
     ttk.Label(control_frame, text="Step Delay (s):").pack(pady=5)
-    delay_var = tk.StringVar(value="0.1")
+    delay_var = tk.StringVar(value="0.001")
     delay_entry = ttk.Entry(control_frame, textvariable=delay_var, width=10)
     delay_entry.pack(pady=5)
     
