@@ -1,32 +1,49 @@
 import argparse
 import sys
+import os
+from colorama import init, Fore, Style
 from maze_generator import generate_maze, save_maze_to_json, load_maze_from_json
 from maze_lib import BFS, DFS, AStar, Dijkstra, Backtracking
+from gettext import gettext as _
 
+# Initialize colorama
+init()
+
+# Enable VT100 Escape Sequence for WINDOWS 10 Ver. 1607
+os.system('')
 
 def main(args: argparse.Namespace) -> None:
     # Load maze if specified
     if args.load:
+        print(_(f"{Fore.CYAN}Loading maze from {args.load}...{Style.RESET_ALL}"))
         maze = load_maze_from_json(args.load)
         if maze is None:
-            print(f"Error: Could not load maze from {args.load}")
+            print(_(f"{Fore.RED}Error: Could not load maze from {args.load}{Style.RESET_ALL}"))
             sys.exit(1)
+        print(_(f"{Fore.GREEN}Maze loaded successfully!{Style.RESET_ALL}\n"))
     else:
+        print(f"{Fore.CYAN}Generating {args.width}x{args.height} maze...{Style.RESET_ALL}")
         maze = generate_maze(args.width, args.height, ensure_solvable=True)
+        print(f"{Fore.GREEN}Maze generated successfully!{Style.RESET_ALL}\n")
     
     # Save maze if specified
     if args.save:
+        print(f"{Fore.CYAN}Saving maze to {args.save}...{Style.RESET_ALL}")
         save_maze_to_json(maze, args.save)
-        print(f"Maze saved to {args.save}")
+        print(f"{Fore.GREEN}Maze saved successfully!{Style.RESET_ALL}\n")
         if not args.algorithm:
             return
 
     if not args.algorithm:
         # Just print the maze if no algorithm specified
+        print(f"{Fore.YELLOW}Maze layout:{Style.RESET_ALL}")
         maze.print_maze()
         return
 
     alg = None
+    algorithm_name = args.algorithm.upper()
+    print(f"{Fore.CYAN}Solving maze using {algorithm_name} algorithm...{Style.RESET_ALL}")
+    
     match args.algorithm:
         case 'BFS':
             alg = BFS(maze, step_delay=args.timeout, debug=True)
@@ -38,12 +55,17 @@ def main(args: argparse.Namespace) -> None:
             alg = AStar(maze, step_delay=args.timeout, debug=True)
         case 'backtracking':
             alg = Backtracking(maze, step_delay=args.timeout, debug=True)
+            
     if not alg.find_path():
-        print("Unsolvable")
-
+        print(f"{Fore.RED}Maze is unsolvable!{Style.RESET_ALL}")
+    else:
+        print(f"\n{Fore.GREEN}Path found successfully!{Style.RESET_ALL}")
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=f"{Fore.CYAN}Maze Generator and Solver CLI{Style.RESET_ALL}",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("-w", "--width", type=int, default=40,
                         help="Width of the maze grid")
     parser.add_argument("-H", "--height", type=int, default=20,

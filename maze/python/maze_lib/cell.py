@@ -3,25 +3,25 @@ from enum import Enum
 
 
 class CellType(Enum):
-    FLOOR = (0, ' ', 0.98, 1.0)
-    WALL_HORIZONTAL = (1, '─', 0.3, 0.0)
-    WALL_VERTICAL = (2, '│', 0.05, 0.0)
-    WALL_CORNER_TL = (3, '┌', 0.1, 0.0)
-    WALL_CORNER_TR = (4, '┐', 0.1, 0.0)
-    WALL_CORNER_BL = (5, '└', 0.1, 0.0)
-    WALL_CORNER_BR = (6, '┘', 0.1, 0.0)
-    WALL_CROSS = (7, '┼', 0.1, 0.0)
-    WALL_T_CROSS = (8, '┬', 0.1, 0.0)
-    WALL_B_CROSS = (9, '┴', 0.1, 0.0)
-    WALL_L_CROSS = (10, '├', 0.1, 0.0)
-    WALL_R_CROSS = (11, '┤', 0.1, 0.0)
+    FLOOR = (0, '·', 0.98, 1.0)
+    WALL_HORIZONTAL = (1, '═', 0.3, 0.0)
+    WALL_VERTICAL = (2, '║', 0.05, 0.0)
+    WALL_CORNER_TL = (3, '╔', 0.1, 0.0)
+    WALL_CORNER_TR = (4, '╗', 0.1, 0.0)
+    WALL_CORNER_BL = (5, '╚', 0.1, 0.0)
+    WALL_CORNER_BR = (6, '╝', 0.1, 0.0)
+    WALL_CROSS = (7, '╬', 0.1, 0.0)
+    WALL_T_CROSS = (8, '╦', 0.1, 0.0)
+    WALL_B_CROSS = (9, '╩', 0.1, 0.0)
+    WALL_L_CROSS = (10, '╠', 0.1, 0.0)
+    WALL_R_CROSS = (11, '╣', 0.1, 0.0)
 
     SWAMP_LITE = (20, '░', 0.05, 0.8)
     SWAMP_MEDIUM = (21, '▒', 0.02, 0.4)
     SWAMP_HEAVY = (22, '▓', 0.005, 0.2)
 
-    START = (40, 's', 0.0, 1.0)
-    FINISH = (41, 'f', 0.0, 1.0)
+    START = (40, 'S', 0.0, 1.0)
+    FINISH = (41, 'F', 0.0, 1.0)
 
     def __init__(self, value: int, graphic: str, frequency: float, walkable: float):
         self._value_ = value

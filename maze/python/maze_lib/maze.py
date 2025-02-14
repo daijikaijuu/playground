@@ -1,5 +1,5 @@
 import random
-
+from colorama import Fore, Style
 from .cell import Cell, CellType
 from .directions import Directions
 from .types import Point
@@ -300,39 +300,52 @@ class Maze:
         return start, finish
 
     def print_maze(self, hr: int = -1, hc: int = -1):
-        """Print the generated maze with a gradient based on entropy."""
-        # Clear the screen and move the cursor to the top-left corner
-        # Uncomment the following line if you want to clear the screen
-        # print("\033[2J\033[H", end='')
-
+        """Print the generated maze with colors and improved visualization."""
         max_entropy = len(CellType)
+
+        # Define colors for different cell types
+        colors = {
+            CellType.WALL_HORIZONTAL: Fore.WHITE,
+            CellType.WALL_VERTICAL: Fore.WHITE,
+            CellType.WALL_CORNER_TL: Fore.WHITE,
+            CellType.WALL_CORNER_TR: Fore.WHITE,
+            CellType.WALL_CORNER_BL: Fore.WHITE,
+            CellType.WALL_CORNER_BR: Fore.WHITE,
+            CellType.WALL_T_CROSS: Fore.WHITE,
+            CellType.WALL_B_CROSS: Fore.WHITE,
+            CellType.WALL_L_CROSS: Fore.WHITE,
+            CellType.WALL_R_CROSS: Fore.WHITE,
+            CellType.WALL_CROSS: Fore.WHITE,
+            CellType.START: Fore.GREEN,
+            CellType.FINISH: Fore.RED,
+            CellType.FLOOR: Fore.BLUE,
+            CellType.SWAMP_LITE: Fore.YELLOW,
+            CellType.SWAMP_MEDIUM: Fore.YELLOW,
+            CellType.SWAMP_HEAVY: Fore.YELLOW,
+        }
 
         for r, row in enumerate(self.grid):
             for c, cell in enumerate(row):
-                entropy = len(cell.possible_types)
-                i = cell.cell_type.graphic if cell.cell_type else '?'
-
-                if self.debug:
-                    # Determine the color based on entropy
-                    if r == hr and c == hc:
-                        # Highlight the current cell in red
-                        print(f"\033[5m{i}\033[0m", end='')  # Red color
-                    else:
-                        # Map entropy to a grayscale gradient (30-37 are ANSI grayscale codes)
-                        if entropy > 0:
-                            # Scale entropy to 30-37
-                            gray_level = int(30 + (entropy / max_entropy) * 7)
-                            # Clamp to valid range
-                            gray_level = min(max(gray_level, 30), 37)
-                            # print(gray_level)
-                            print(f"\033[{gray_level}m{i}\033[0m",
-                                  end='')  # Apply grayscale
-                        else:
-                            # Default color if max_entropy is 0
-                            print(f'\033[47m{i}\033[0m', end='')
+                if cell.in_path:
+                    # Highlight solution path
+                    print(f"{Fore.CYAN}●{Style.RESET_ALL}", end='')
+                elif cell.visited:
+                    # Show visited cells during pathfinding
+                    print(f"{Fore.MAGENTA}○{Style.RESET_ALL}", end='')
+                elif self.debug and (r == hr and c == hc):
+                    # Highlight current cell in debug mode
+                    print(f"\033[5m{cell.cell_type.graphic}\033[0m", end='')
+                elif not cell.is_collapsed():
+                    # Show entropy gradient for uncollapsed cells
+                    entropy = len(cell.possible_types)
+                    gray_level = int(30 + (entropy / max_entropy) * 7)
+                    gray_level = min(max(gray_level, 30), 37)
+                    print(f"\033[{gray_level}m{cell.cell_type.graphic}\033[0m", end='')
                 else:
-                    print(i, end='')
-            print('')  # Newline after each row
+                    # Normal cell display with color
+                    color = colors.get(cell.cell_type, Fore.WHITE)
+                    print(f"{color}{cell.cell_type.graphic}{Style.RESET_ALL}", end='')
+            print()  # Newline after each row
 
     def mark_visited(self, point: Point):
         """Mark a cell as visited during pathfinding"""
