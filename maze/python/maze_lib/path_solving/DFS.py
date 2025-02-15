@@ -1,7 +1,8 @@
 import sys
 
-from .path_solving import PathSolving
 from maze_lib import Maze
+
+from .path_solving import PathSolving
 
 
 class DFS(PathSolving):
@@ -19,7 +20,7 @@ class DFS(PathSolving):
             current = self.stack.pop()
             if current in self.visited:
                 continue
-            
+
             self.visited.add(current)
             self.mark_visited(current[0])
 
@@ -33,9 +34,9 @@ class DFS(PathSolving):
                 if neighbor not in self.visited:
                     self.previous[neighbor] = current
                     self.stack.append(neighbor)
-            
+
             yield  # Pause here to show progress
-        
+
         return False
 
     def reconstruct_path(self):

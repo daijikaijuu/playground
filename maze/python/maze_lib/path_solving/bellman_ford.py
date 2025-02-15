@@ -1,6 +1,8 @@
 import sys
+
 from maze_lib import Cell, Maze
 from maze_lib.types import Point
+
 from .path_solving import PathSolving
 
 
@@ -17,7 +19,7 @@ class BellmanFord(PathSolving):
         self.distances = {self.start: 0}
         self.previous = {}
         self.visited = set()
-        
+
         # Get all valid cells as vertices
         vertices = []
         for row in range(1, self.maze.height - 1):
@@ -35,21 +37,22 @@ class BellmanFord(PathSolving):
 
                 (row, col), _ = vertex
                 neighbors = self.get_neighbors(col, row, valid=True)
-                
+
                 for neighbor in neighbors:
                     if neighbor not in self.distances:
                         self.distances[neighbor] = float('inf')
-                    
-                    new_distance = self.distances[vertex] + self.get_edge_weight(vertex, neighbor)
+
+                    new_distance = self.distances[vertex] + \
+                        self.get_edge_weight(vertex, neighbor)
                     if new_distance < self.distances[neighbor]:
                         self.distances[neighbor] = new_distance
                         self.previous[neighbor] = vertex
                         updated = True
                         self.mark_visited(neighbor[0])
                         self.visited.add(neighbor)
-                
+
                 yield  # Pause here to show progress
-            
+
             if not updated:  # Early termination if no updates
                 break
 
@@ -58,12 +61,12 @@ class BellmanFord(PathSolving):
             self.reconstruct_path()
             yield
             return True
-    
+
         yield
         return False
 
     def get_edge_weight(self, current_node: tuple[Point, Cell],
-                       neighbor: tuple[Point, Cell]) -> float:
+                        neighbor: tuple[Point, Cell]) -> float:
         current_node_weight = current_node[1].cell_type.walkable
         return 1.0 + (1.0 - current_node_weight)
 
@@ -86,4 +89,5 @@ class BellmanFord(PathSolving):
                 else:
                     print(cell.cell_type.graphic, end='')  # Print cell type
             print()
-        super().print_step() 
+        super().print_step()
+

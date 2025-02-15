@@ -1,7 +1,8 @@
-from maze_lib import BFS, Maze
-from maze_lib.cell import Cell, CellType
 import json
 from typing import Optional
+
+from maze_lib import BFS, Maze
+from maze_lib.cell import Cell, CellType
 
 
 def generate_maze(width: int, height: int, ensure_solvable: bool = True) \
@@ -25,16 +26,18 @@ def generate_maze(width: int, height: int, ensure_solvable: bool = True) \
         except ValueError:
             print("Failed to generate maze. Retrying...")
 
+
 def save_maze_to_json(maze: Maze, filename: str) -> None:
     """Save maze to a JSON file"""
     maze_data = {
         'width': maze.width,
         'height': maze.height,
-        'grid': [[cell.cell_type.name if cell.cell_type else None 
+        'grid': [[cell.cell_type.name if cell.cell_type else None
                  for cell in row] for row in maze.grid]
     }
     with open(filename, 'w') as f:
         json.dump(maze_data, f)
+
 
 def load_maze_from_json(filename: str) -> Optional[Maze]:
     """Load maze from a JSON file"""
@@ -42,7 +45,7 @@ def load_maze_from_json(filename: str) -> Optional[Maze]:
         with open(filename, 'r') as f:
             data = json.load(f)
             maze = Maze(data['width'], data['height'])
-            maze.grid = [[Cell(CellType[cell_type] if cell_type else None) 
+            maze.grid = [[Cell(CellType[cell_type] if cell_type else None)
                          for cell_type in row] for row in data['grid']]
             return maze
     except (FileNotFoundError, json.JSONDecodeError, KeyError):

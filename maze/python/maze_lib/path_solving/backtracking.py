@@ -21,7 +21,7 @@ class Backtracking(PathSolving):
 
         while self.stack:
             current = self.stack[-1]  # Peek at the top of the stack
-            
+
             if current == self.finish:
                 self.reconstruct_path()
                 yield
@@ -29,7 +29,8 @@ class Backtracking(PathSolving):
 
             (row, col), _ = current
             neighbors = self.get_neighbors(col, row, valid=True)
-            unvisited_neighbors = [n for n in neighbors if n not in self.visited]
+            unvisited_neighbors = [
+                n for n in neighbors if n not in self.visited]
 
             if unvisited_neighbors:
                 # Move to an unvisited neighbor

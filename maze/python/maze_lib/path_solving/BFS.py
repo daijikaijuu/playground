@@ -1,8 +1,9 @@
 import sys
 from collections import deque
 
-from .path_solving import PathSolving
 from maze_lib import Maze
+
+from .path_solving import PathSolving
 
 
 class BFS(PathSolving):
@@ -35,9 +36,9 @@ class BFS(PathSolving):
                 if neighbor not in self.visited:
                     self.previous[neighbor] = current
                     self.queue.append(neighbor)
-            
+
             yield
-        
+
         return False  # No path found
 
     def reconstruct_path(self):

@@ -1,5 +1,7 @@
 import random
+
 from colorama import Fore, Style
+
 from .cell import Cell, CellType
 from .directions import Directions
 from .types import Point
@@ -340,11 +342,13 @@ class Maze:
                     entropy = len(cell.possible_types)
                     gray_level = int(30 + (entropy / max_entropy) * 7)
                     gray_level = min(max(gray_level, 30), 37)
-                    print(f"\033[{gray_level}m{cell.cell_type.graphic}\033[0m", end='')
+                    print(
+                        f"\033[{gray_level}m{cell.cell_type.graphic}\033[0m", end='')
                 else:
                     # Normal cell display with color
                     color = colors.get(cell.cell_type, Fore.WHITE)
-                    print(f"{color}{cell.cell_type.graphic}{Style.RESET_ALL}", end='')
+                    print(
+                        f"{color}{cell.cell_type.graphic}{Style.RESET_ALL}", end='')
             print()  # Newline after each row
 
     def mark_visited(self, point: Point):
@@ -352,13 +356,13 @@ class Maze:
         row, col = point
         cell = self.grid[row][col]
         cell.visited = True
-    
+
     def mark_path(self, point: Point):
         """Mark a cell as part of the solution path"""
         row, col = point
         cell = self.grid[row][col]
         cell.in_path = True
-    
+
     def clear_marks(self):
         """Clear all visualization marks"""
         for row in self.grid:

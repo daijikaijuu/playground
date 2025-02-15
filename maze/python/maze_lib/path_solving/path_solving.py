@@ -61,7 +61,7 @@ class PathSolving(ABC):
         """Run the complete pathfinding algorithm"""
         generator = self._find_path_generator()
         result = False
-        
+
         try:
             while True:
                 next(generator)
@@ -69,7 +69,7 @@ class PathSolving(ABC):
                     self.print_step()
         except StopIteration as e:
             result = bool(e.value)
-        
+
         return result
 
     def print_step(self):

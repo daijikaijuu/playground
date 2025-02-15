@@ -25,10 +25,11 @@ class AStar(PathSolving):
         self.previous = {}
 
         while self.priority_queue:
-            _, current_g_cost, current_node = heapq.heappop(self.priority_queue)
+            _, current_g_cost, current_node = heapq.heappop(
+                self.priority_queue)
             if current_node in self.visited:
                 continue
-                
+
             self.visited.add(current_node)
             self.mark_visited(current_node[0])
 
@@ -42,7 +43,8 @@ class AStar(PathSolving):
                 if neighbor in self.visited:
                     continue
 
-                neighbor_g_cost = current_g_cost + self.get_edge_weight(current_node, neighbor)
+                neighbor_g_cost = current_g_cost + \
+                    self.get_edge_weight(current_node, neighbor)
                 neighbor_h_cost = self.heuristic(neighbor)
                 neighbor_f_cost = neighbor_g_cost + neighbor_h_cost
 
@@ -50,10 +52,11 @@ class AStar(PathSolving):
                     self.g_costs[neighbor] = neighbor_g_cost
                     self.f_costs[neighbor] = neighbor_f_cost
                     self.previous[neighbor] = current_node
-                    heapq.heappush(self.priority_queue, (neighbor_f_cost, neighbor_g_cost, neighbor))
-            
+                    heapq.heappush(self.priority_queue,
+                                   (neighbor_f_cost, neighbor_g_cost, neighbor))
+
             yield  # Pause here to show progress
-        
+
         return False
 
     def get_edge_weight(self, current_node: tuple[Point, Cell],
