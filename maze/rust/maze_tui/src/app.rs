@@ -11,7 +11,6 @@ use maze_lib::{
         self, Algorithm, BellmanFord, MazeGenerationAlgorithm, PathfindingAlgorithm,
         PathfindingAnimationState, PathfindingResult, PathfindingState, DFS,
     },
-    maze_generator::MazeGenerator,
     Maze,
 };
 use ratatui::{
