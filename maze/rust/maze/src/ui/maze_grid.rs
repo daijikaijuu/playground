@@ -23,6 +23,7 @@ pub struct MazeGrid {
     animation_queue: VecDeque<Maze>,
     animation_state: PathfindingAnimationState,
     pub selected_algorithm: Algorithm,
+    pub selected_generator: Algorithm,
     pathfinding_stats: Option<PathfindingStats>,
     pathfinding_state: PathfindingState,
 }
@@ -36,11 +37,17 @@ pub enum Message {
 
 impl MazeGrid {
     pub fn new() -> Self {
-        let dfs = DFS::new();
+        let selected_generator = Algorithm::default();
+        let maze = selected_generator
+            .get_maze_generator()
+            .expect("Default generator should exist")
+            .generate(41, 41, 1, 1)
+            .unwrap();
         MazeGrid {
-            maze: dfs.generate(41, 41, 1, 1).unwrap(),
+            maze: maze,
             grid_cache: Cache::default(),
-            selected_algorithm: Algorithm::default(),
+            selected_algorithm: selected_generator,
+            selected_generator,
             animation_queue: VecDeque::new(),
             animation_state: PathfindingAnimationState::default(),
             pathfinding_stats: None,
@@ -151,14 +158,15 @@ impl MazeGrid {
     }
 
     fn generate_maze(&mut self) {
-        let dfs = DFS::new();
-        self.maze = dfs
-            .generate(self.maze.width, self.maze.height, 1, 1)
-            .unwrap();
-        self.grid_cache.clear();
-        self.animation_queue.clear();
-        self.animation_state = PathfindingAnimationState::default();
-        self.pathfinding_state = PathfindingState::default();
+        if let Some(mut generator) = self.selected_generator.get_maze_generator() {
+            self.maze = generator
+                .generate(self.maze.width, self.maze.height, 1, 1)
+                .unwrap();
+            self.grid_cache.clear();
+            self.animation_queue.clear();
+            self.animation_state = PathfindingAnimationState::default();
+            self.pathfinding_state = PathfindingState::default();
+        }
     }
 }
 

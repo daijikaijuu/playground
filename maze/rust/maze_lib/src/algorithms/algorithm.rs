@@ -1,3 +1,5 @@
+use super::MazeGenerationAlgorithm;
+use super::{Backtracking, BFS, DFS};
 use enum_iterator::Sequence;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Sequence)]
@@ -20,6 +22,18 @@ impl Algorithm {
         Algorithm::DFS,
         Algorithm::Dijkstra,
     ];
+
+    pub fn maze_generation_algorithms() -> Vec<Algorithm> {
+        vec![Algorithm::DFS, Algorithm::BFS, Algorithm::Backtracking]
+    }
+
+    pub fn get_maze_generator(&self) -> Option<Box<dyn MazeGenerationAlgorithm>> {
+        match self {
+            Algorithm::DFS => Some(Box::new(DFS::default())),
+            Algorithm::Backtracking => Some(Box::new(Backtracking::default())),
+            _ => None,
+        }
+    }
 }
 
 impl std::fmt::Display for Algorithm {

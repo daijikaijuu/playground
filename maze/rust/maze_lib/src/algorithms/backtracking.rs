@@ -1,11 +1,16 @@
+use std::collections::HashSet;
 use std::sync::mpsc::Sender;
 
 use rand::seq::SliceRandom;
 
-use crate::maze::{Maze, MazeCell};
+use crate::{
+    algorithms::MOVEMENTS_X2,
+    maze::{Maze, MazeCell},
+};
 
 use super::{
-    pathfinding::PathfindingAlgorithm, Algorithm, PathfindingResult, PathfindingStats, MOVEMENTS,
+    pathfinding::PathfindingAlgorithm, Algorithm, MazeGenerationAlgorithm, PathfindingResult,
+    PathfindingStats, Point, MOVEMENTS,
 };
 
 #[derive(Default)]
@@ -95,5 +100,68 @@ impl PathfindingAlgorithm for Backtracking {
 
     fn get_stats(&self) -> Option<PathfindingStats> {
         Some(self.stats)
+    }
+}
+
+impl MazeGenerationAlgorithm for Backtracking {
+    fn generate(
+        &mut self,
+        width: usize,
+        height: usize,
+        start_x: usize,
+        start_y: usize,
+    ) -> Option<Maze> {
+        let mut maze = Maze::new(width, height);
+        let mut rng = rand::thread_rng();
+        let mut visited = HashSet::new();
+
+        fn generate_maze_recursive(
+            current: Point,
+            maze: &mut Maze,
+            visited: &mut HashSet<Point>,
+            rng: &mut impl rand::Rng,
+        ) {
+            visited.insert(current);
+            maze.set_cell(current.x, current.y, MazeCell::Path);
+
+            let mut directions = MOVEMENTS_X2.to_vec();
+            directions.shuffle(rng);
+
+            for (dx, dy) in directions {
+                let new_x = current.x as i32 + dx;
+                let new_y = current.y as i32 + dy;
+
+                if maze.is_valid_move(new_x, new_y) {
+                    let next = Point {
+                        x: new_x as usize,
+                        y: new_y as usize,
+                    };
+
+                    if !visited.contains(&next) {
+                        // Carve path between current and next
+                        maze.set_cell(
+                            (current.x + next.x) / 2,
+                            (current.y + next.y) / 2,
+                            MazeCell::Path,
+                        );
+                        generate_maze_recursive(next, maze, visited, rng);
+                    }
+                }
+            }
+        }
+
+        let start = Point {
+            x: start_x,
+            y: start_y,
+        };
+        generate_maze_recursive(start, &mut maze, &mut visited, &mut rng);
+
+        // Set entrance and exit
+        maze.set_cell(start_x, start_y, MazeCell::Entrance);
+        let exit_point = maze.get_random_boundary_point(&mut rng);
+        maze.set_cell(exit_point.0, exit_point.1, MazeCell::Exit);
+
+        maze.backup();
+        Some(maze)
     }
 }

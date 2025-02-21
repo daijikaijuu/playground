@@ -14,11 +14,13 @@ use ui::MazeGrid;
 struct MainWindow {
     maze_grid: MazeGrid,
     selected_algorithm: Option<Algorithm>,
+    selected_generator: Option<Algorithm>,
 }
 
 #[derive(Debug, Clone)]
 enum Message {
     AlgorithmSelected(Algorithm),
+    GeneratorSelected(Algorithm),
     FindPath,
     MazeGrid(ui::maze_grid::Message),
     Tick,
@@ -35,6 +37,7 @@ impl Application for MainWindow {
             MainWindow {
                 maze_grid: MazeGrid::new(),
                 selected_algorithm: Some(Algorithm::default()),
+                selected_generator: Some(Algorithm::DFS),
             },
             Command::none(),
         )
@@ -49,6 +52,10 @@ impl Application for MainWindow {
             Message::AlgorithmSelected(algorithm) => {
                 self.selected_algorithm = Some(algorithm);
                 self.maze_grid.selected_algorithm = algorithm;
+            }
+            Message::GeneratorSelected(algorithm) => {
+                self.selected_generator = Some(algorithm);
+                self.maze_grid.selected_generator = algorithm;
             }
             Message::MazeGrid(message) => {
                 self.maze_grid.update(message);
@@ -69,7 +76,14 @@ impl Application for MainWindow {
             self.selected_algorithm,
             Message::AlgorithmSelected,
         )
-        .placeholder("Choose an algorithm");
+        .placeholder("Choose a pathfinding algorithm");
+
+        let generator_selector_list = pick_list(
+            Algorithm::maze_generation_algorithms(),
+            self.selected_generator,
+            Message::GeneratorSelected,
+        )
+        .placeholder("Choose a maze generator");
 
         let button_controls = row![
             button("Generate maze")
@@ -83,19 +97,17 @@ impl Application for MainWindow {
         let top_controls = row![
             text("Maze crawler".to_string()).size(20),
             algorithm_selector_list,
+            generator_selector_list,
             button_controls,
         ]
         .spacing(10);
 
-        column![
-            vertical_space().height(5),
-            top_controls,
-            vertical_space().height(5),
-            self.maze_grid
-                .view()
-                .map(Message::MazeGrid)
-        ]
-        .into()
+        let top_space = vertical_space().height(5);
+        let bottom_space = vertical_space().height(5);
+        let maze_view = self.maze_grid.view().map(Message::MazeGrid);
+        let content = column![top_space, top_controls, bottom_space, maze_view];
+
+        content.into()
     }
 
     fn theme(&self) -> Self::Theme {
