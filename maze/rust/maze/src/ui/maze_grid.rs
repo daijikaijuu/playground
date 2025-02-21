@@ -79,9 +79,11 @@ impl MazeGrid {
     pub fn update(&mut self, message: Message) {
         match message {
             Message::SelectAlgorithm(algorithm) => {
-                self.selected_algorithm = algorithm;
-                self.grid_cache.clear();
-                self.animation_queue.clear();
+                if algorithm.is_pathfinding_algorithm() {
+                    self.selected_algorithm = algorithm;
+                    self.grid_cache.clear();
+                    self.animation_queue.clear();
+                }
             }
             Message::GenerateMaze => self.generate_maze(),
             Message::Tick => {
@@ -104,6 +106,11 @@ impl MazeGrid {
     }
 
     pub fn start(&mut self) {
+        // Don't start pathfinding if the selected algorithm is not a pathfinding algorithm
+        if !self.selected_algorithm.is_pathfinding_algorithm() {
+            return;
+        }
+
         // Reset maze
         self.pathfinding_stats = None;
         self.grid_cache.clear();
@@ -115,7 +122,6 @@ impl MazeGrid {
             channel();
 
         let mut maze = self.maze.clone();
-
         let selected_algorithm = self.selected_algorithm;
 
         let handle = thread::spawn(move || match selected_algorithm {
@@ -143,6 +149,7 @@ impl MazeGrid {
                 let mut dijktra = Dijkstra::new();
                 dijktra.find_path(&mut maze, &sender);
             }
+            _ => unreachable!("Non-pathfinding algorithms should be filtered out"),
         });
 
         while let Ok(recieved_result) = reciever.recv() {

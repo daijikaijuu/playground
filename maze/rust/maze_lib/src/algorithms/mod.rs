@@ -9,6 +9,7 @@ mod bellman_ford;
 mod bfs;
 mod dfs;
 mod dijkstra;
+mod wfc;
 
 pub use algorithm::*;
 pub use maze_generation::*;
@@ -21,3 +22,4 @@ pub use bellman_ford::*;
 pub use bfs::*;
 pub use dfs::*;
 pub use dijkstra::*;
+pub use wfc::*;

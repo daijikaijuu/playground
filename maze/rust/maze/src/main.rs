@@ -72,7 +72,7 @@ impl Application for MainWindow {
 
     fn view(&self) -> iced::Element<'_, Self::Message, Self::Theme, iced::Renderer> {
         let algorithm_selector_list = pick_list(
-            &Algorithm::ALL[..],
+            Algorithm::pathfinding_algorithms(),
             self.selected_algorithm,
             Message::AlgorithmSelected,
         )

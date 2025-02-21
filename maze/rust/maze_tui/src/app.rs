@@ -95,6 +95,7 @@ impl App {
                 let mut dijktra = algorithms::Dijkstra::new();
                 dijktra.find_path(&mut maze, &sender);
             }
+            _ => {}
         });
 
         while let Ok(recieved_result) = receiver.recv() {
