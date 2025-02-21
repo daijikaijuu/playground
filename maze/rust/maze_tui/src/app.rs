@@ -36,7 +36,7 @@ pub struct App {
 
 impl App {
     pub fn new() -> Self {
-        let dfs = DFS::new();
+        let mut dfs = DFS::new();
         let maze = dfs.generate(41, 41, 1, 1).unwrap();
         App {
             maze,
@@ -54,7 +54,7 @@ impl App {
 
     pub fn reset_maze(&mut self) {
         self.animation_steps.clear();
-        let dfs = DFS::new();
+        let mut dfs = DFS::new();
         self.maze = dfs.generate(41, 41, 1, 1).unwrap();
         self.animation_state = PathfindingAnimationState::default();
         self.pathfinding_state = PathfindingState::default();
