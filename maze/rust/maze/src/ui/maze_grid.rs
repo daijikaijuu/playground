@@ -14,7 +14,7 @@ use iced::{
     Color, Element, Length, Point, Rectangle, Renderer, Size, Theme,
 };
 
-use maze_lib::{algorithms::*, Maze, MazeCell, MazeGenerator};
+use maze_lib::{algorithms::*, Maze, MazeCell};
 
 #[derive(Debug)]
 pub struct MazeGrid {
@@ -36,8 +36,9 @@ pub enum Message {
 
 impl MazeGrid {
     pub fn new() -> Self {
+        let dfs = DFS::new();
         MazeGrid {
-            maze: Maze::new(41, 41),
+            maze: dfs.generate(41, 41, 1, 1).unwrap(),
             grid_cache: Cache::default(),
             selected_algorithm: Algorithm::default(),
             animation_queue: VecDeque::new(),
@@ -150,7 +151,10 @@ impl MazeGrid {
     }
 
     fn generate_maze(&mut self) {
-        self.maze.generate_maze(1, 1);
+        let dfs = DFS::new();
+        self.maze = dfs
+            .generate(self.maze.width, self.maze.height, 1, 1)
+            .unwrap();
         self.grid_cache.clear();
         self.animation_queue.clear();
         self.animation_state = PathfindingAnimationState::default();

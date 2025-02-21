@@ -8,10 +8,11 @@ use std::{
 use enum_iterator::{next_cycle, previous_cycle};
 use maze_lib::{
     algorithms::{
-        self, Algorithm, BellmanFord, PathfindingAlgorithm, PathfindingAnimationState,
-        PathfindingResult, PathfindingState,
+        self, Algorithm, BellmanFord, MazeGenerationAlgorithm, PathfindingAlgorithm,
+        PathfindingAnimationState, PathfindingResult, PathfindingState, DFS,
     },
-    Maze, MazeGenerator,
+    maze_generator::MazeGenerator,
+    Maze,
 };
 use ratatui::{
     layout::{Constraint, Direction, Layout},
@@ -36,8 +37,8 @@ pub struct App {
 
 impl App {
     pub fn new() -> Self {
-        let mut maze = Maze::new(41, 41);
-        maze.generate_maze(1, 1);
+        let dfs = DFS::new();
+        let maze = dfs.generate(41, 41, 1, 1).unwrap();
         App {
             maze,
             selected_algorithm: Algorithm::default(),
@@ -54,8 +55,8 @@ impl App {
 
     pub fn reset_maze(&mut self) {
         self.animation_steps.clear();
-        self.maze = Maze::new(41, 41);
-        self.maze.generate_maze(1, 1);
+        let dfs = DFS::new();
+        self.maze = dfs.generate(41, 41, 1, 1).unwrap();
         self.animation_state = PathfindingAnimationState::default();
         self.pathfinding_state = PathfindingState::default();
     }

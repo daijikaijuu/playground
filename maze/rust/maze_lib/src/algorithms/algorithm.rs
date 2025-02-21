@@ -40,3 +40,4 @@ impl std::fmt::Display for Algorithm {
 }
 
 pub const MOVEMENTS: [(i32, i32); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+pub const MOVEMENTS_X2: [(i32, i32); 4] = [(0, 2), (2, 0), (0, -2), (-2, 0)];

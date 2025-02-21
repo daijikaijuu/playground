@@ -1,4 +1,5 @@
 mod algorithm;
+mod maze_generation;
 mod pathfinding;
 mod point;
 
@@ -10,6 +11,7 @@ mod dfs;
 mod dijkstra;
 
 pub use algorithm::*;
+pub use maze_generation::*;
 pub use pathfinding::*;
 pub use point::*;
 

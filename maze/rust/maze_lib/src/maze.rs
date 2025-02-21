@@ -1,5 +1,4 @@
 use rand::rngs::ThreadRng;
-use rand::seq::SliceRandom;
 use rand::Rng;
 use std::fmt;
 
@@ -12,18 +11,6 @@ pub enum MazeCell {
     Exit,
     Visited,
     FinalPath,
-}
-
-pub trait MazeGenerator {
-    fn generate_maze(&mut self, start_x: usize, start_y: usize);
-    fn depth_first_search(
-        &mut self,
-        x: i32,
-        y: i32,
-        rng: &mut ThreadRng,
-        directions: &[(i32, i32)],
-    );
-    fn prims_algorithm(&mut self, start_x: usize, start_y: usize, rng: &mut ThreadRng);
 }
 
 #[derive(Clone, Default)]
@@ -57,6 +44,10 @@ impl Maze {
 
     pub fn reset(&mut self) {
         self.cells = self.original_cells.clone();
+    }
+
+    pub fn backup(&mut self) {
+        self.original_cells = self.cells.clone();
     }
 
     pub fn get_entrance(&self) -> Option<(usize, usize)> {
@@ -104,7 +95,7 @@ impl Maze {
         x >= 0 && y >= 0 && x < self.width as i32 && y < self.height as i32
     }
 
-    fn get_random_boundary_point(&self, rng: &mut ThreadRng) -> (usize, usize) {
+    pub fn get_random_boundary_point(&self, rng: &mut ThreadRng) -> (usize, usize) {
         let side = rng.gen_range(0..4); // 0: Top, 1: Right, 2: Bottom, 3: Left
 
         let (x, y) = match side {
@@ -137,102 +128,71 @@ impl Maze {
     }
 }
 
-impl MazeGenerator for Maze {
-    fn generate_maze(&mut self, start_x: usize, start_y: usize) {
-        self.cells = vec![MazeCell::Wall; self.width * self.height];
-
-        let mut rng = rand::thread_rng();
-        let directions = [(0, -2), (0, 2), (-2, 0), (2, 0)];
-
-        self.set_cell(start_x, start_y, MazeCell::Path);
-        MazeGenerator::depth_first_search(
-            self,
-            start_x as i32,
-            start_y as i32,
-            &mut rng,
-            &directions,
-        );
-
-        self.set_cell(start_x, start_y, MazeCell::Entrance);
-        // Find a random point on the boundary as the exit point
-        let exit_point = self.get_random_boundary_point(&mut rng);
-        self.set_cell(exit_point.0, exit_point.1, MazeCell::Exit);
-
-        // Backup generated maze
-        self.original_cells = self.cells.clone();
-    }
-
-    fn depth_first_search(
-        &mut self,
-        x: i32,
-        y: i32,
-        rng: &mut ThreadRng,
-        directions: &[(i32, i32)],
-    ) {
-        let mut shuffled_directions = directions.to_vec();
-        shuffled_directions.shuffle(rng);
-        for &(dx, dy) in &shuffled_directions {
-            let new_x = x + dx;
-            let new_y = y + dy;
-
-            if self.is_valid_move(new_x, new_y) {
-                let nx = new_x as usize;
-                let ny = new_y as usize;
-
-                if self.get_cell(nx, ny) == MazeCell::Wall {
-                    self.set_cell(nx, ny, MazeCell::Path);
-                    self.set_cell(
-                        (x + new_x) as usize / 2,
-                        (y + new_y) as usize / 2,
-                        MazeCell::Path,
-                    );
-
-                    self.depth_first_search(new_x, new_y, rng, directions);
-                }
-            }
-        }
-    }
-
-    fn prims_algorithm(&mut self, start_x: usize, start_y: usize, rng: &mut ThreadRng) {
-        let mut frontier = Vec::new();
-        let initial_cell = (start_x, start_y);
-        frontier.push(initial_cell);
-        self.set_cell(start_x, start_y, MazeCell::Path);
-
-        while !frontier.is_empty() {
-            let current_cell = *frontier.choose(rng).expect("Frontier is empty");
-            frontier.retain(|&cell| cell != current_cell);
-
-            let mut valid_neighbors = Vec::new();
-
-            for &(dx, dy) in &[(0, -2), (0, 2), (-2, 0), (2, 0)] {
-                let nx = current_cell.0 as i32 + dx;
-                let ny = current_cell.1 as i32 + dy;
-
-                if self.is_valid_move(nx, ny) {
-                    let neighbor_cell = (nx as usize, ny as usize);
-
-                    if !frontier.contains(&neighbor_cell)
-                        && self.get_cell(nx as usize, ny as usize) == MazeCell::Wall
-                    {
-                        valid_neighbors.push(neighbor_cell);
-                    }
-                }
-            }
-
-            if let Some(&new_cell) = valid_neighbors.choose(rng) {
-                let (cx, cy) = current_cell;
-                let (nx, ny) = new_cell;
-
-                self.set_cell(nx, ny, MazeCell::Path);
-                self.set_cell((cx + nx) / 2, (cy + ny) / 2, MazeCell::Path);
-
-                frontier.push(new_cell);
-            }
-        }
-    }
-}
-
+//impl MazeGenerator for Maze {
+//    fn generate_maze(&mut self, start_x: usize, start_y: usize) {
+//        self.cells = vec![MazeCell::Wall; self.width * self.height];
+//
+//        let mut rng = rand::thread_rng();
+//        let directions = [(0, -2), (0, 2), (-2, 0), (2, 0)];
+//
+//        self.set_cell(start_x, start_y, MazeCell::Path);
+//        MazeGenerator::depth_first_search(
+//            self,
+//            start_x as i32,
+//            start_y as i32,
+//            &mut rng,
+//            &directions,
+//        );
+//
+//        self.set_cell(start_x, start_y, MazeCell::Entrance);
+//        // Find a random point on the boundary as the exit point
+//        let exit_point = self.get_random_boundary_point(&mut rng);
+//        self.set_cell(exit_point.0, exit_point.1, MazeCell::Exit);
+//
+//        // Backup generated maze
+//        self.original_cells = self.cells.clone();
+//    }
+//
+//    fn prims_algorithm(&mut self, start_x: usize, start_y: usize, rng: &mut ThreadRng) {
+//        let mut frontier = Vec::new();
+//        let initial_cell = (start_x, start_y);
+//        frontier.push(initial_cell);
+//        self.set_cell(start_x, start_y, MazeCell::Path);
+//
+//        while !frontier.is_empty() {
+//            let current_cell = *frontier.choose(rng).expect("Frontier is empty");
+//            frontier.retain(|&cell| cell != current_cell);
+//
+//            let mut valid_neighbors = Vec::new();
+//
+//            for &(dx, dy) in &[(0, -2), (0, 2), (-2, 0), (2, 0)] {
+//                let nx = current_cell.0 as i32 + dx;
+//                let ny = current_cell.1 as i32 + dy;
+//
+//                if self.is_valid_move(nx, ny) {
+//                    let neighbor_cell = (nx as usize, ny as usize);
+//
+//                    if !frontier.contains(&neighbor_cell)
+//                        && self.get_cell(nx as usize, ny as usize) == MazeCell::Wall
+//                    {
+//                        valid_neighbors.push(neighbor_cell);
+//                    }
+//                }
+//            }
+//
+//            if let Some(&new_cell) = valid_neighbors.choose(rng) {
+//                let (cx, cy) = current_cell;
+//                let (nx, ny) = new_cell;
+//
+//                self.set_cell(nx, ny, MazeCell::Path);
+//                self.set_cell((cx + nx) / 2, (cy + ny) / 2, MazeCell::Path);
+//
+//                frontier.push(new_cell);
+//            }
+//        }
+//    }
+//}
+//
 impl fmt::Debug for Maze {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for y in 0..self.height {

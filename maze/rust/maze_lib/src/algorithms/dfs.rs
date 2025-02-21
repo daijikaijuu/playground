@@ -1,12 +1,14 @@
+use rand::{rngs::ThreadRng, seq::SliceRandom};
 use std::{collections::HashSet, sync::mpsc::Sender};
 
 use crate::maze::{Maze, MazeCell};
 
 use super::{
-    Algorithm, PathfindingAlgorithm, PathfindingResult, PathfindingStats, Point, MOVEMENTS,
+    Algorithm, MazeGenerationAlgorithm, PathfindingAlgorithm, PathfindingResult, PathfindingStats,
+    Point, MOVEMENTS, MOVEMENTS_X2,
 };
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct DFS {
     stats: PathfindingStats,
 }
@@ -77,6 +79,28 @@ impl DFS {
 
         false
     }
+
+    fn depth_first_maze_generation(current: Point, maze: &mut Maze, rng: &mut ThreadRng) -> bool {
+        let mut shuffled_directions = MOVEMENTS_X2.to_vec();
+        shuffled_directions.shuffle(rng);
+        for &(dx, dy) in &shuffled_directions {
+            let new_x = current.x as i32 + dx;
+            let new_y = current.y as i32 + dy;
+
+            if maze.is_valid_move(new_x, new_y) {
+                let nx = new_x as usize;
+                let ny = new_y as usize;
+
+                if maze.get_cell(nx, ny) == MazeCell::Wall {
+                    maze.set_cell(nx, ny, MazeCell::Path);
+                    maze.set_cell((current.x + nx) / 2, (current.y + ny) / 2, MazeCell::Path);
+
+                    DFS::depth_first_maze_generation(Point { x: nx, y: ny }, maze, rng);
+                }
+            }
+        }
+        false
+    }
 }
 
 impl PathfindingAlgorithm for DFS {
@@ -106,5 +130,30 @@ impl PathfindingAlgorithm for DFS {
 
     fn get_stats(&self) -> Option<PathfindingStats> {
         None
+    }
+}
+
+impl MazeGenerationAlgorithm for DFS {
+    fn generate(self, width: usize, height: usize, start_x: usize, start_y: usize) -> Option<Maze> {
+        let mut maze = Maze::new(width, height);
+        let mut rng = rand::thread_rng();
+
+        maze.set_cell(start_x, start_y, MazeCell::Path);
+        DFS::depth_first_maze_generation(
+            Point {
+                x: start_x,
+                y: start_y,
+            },
+            &mut maze,
+            &mut rng,
+        );
+
+        maze.set_cell(start_x, start_y, MazeCell::Entrance);
+        let exit_point = maze.get_random_boundary_point(&mut rng);
+        maze.set_cell(exit_point.0, exit_point.1, MazeCell::Exit);
+
+        maze.backup();
+
+        Some(maze)
     }
 }

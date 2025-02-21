@@ -1,5 +1,5 @@
 pub mod algorithms;
 mod maze;
-pub mod wfc;
+pub mod maze_generator;
 
 pub use maze::*;
