@@ -9,7 +9,7 @@ edition = "2021"
 crossterm = { version = "0.27.0", features = ["event-stream"] }
 enum-iterator = "2.0.0"
 futures = "0.3.30"
-ratatui = "0.26.1"
+ratatui = "0.29"
 tokio = { version = "1.36.0", features = ["full"] }
 
 [dependencies.maze_lib]

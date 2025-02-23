@@ -98,9 +98,9 @@ impl App {
             _ => {}
         });
 
-        while let Ok(recieved_result) = receiver.recv() {
+        while let Ok(received_result) = receiver.recv() {
             self.animation_state = PathfindingAnimationState::Running;
-            self.animation_steps.push_back(recieved_result.maze);
+            self.animation_steps.push_back(received_result.maze);
         }
 
         handle.join().expect("Failed to join thread");
@@ -150,7 +150,8 @@ impl Widget for &App {
         MazeGrid::new(&self.maze, self.pathfinding_state, self.animation_state)
             .render(layout[0], buf);
 
-        let algs = Algorithm::ALL
+        let algs = Algorithm::pathfinding_algorithms()
+            .into_iter()
             .map(|alg| {
                 if alg == self.selected_algorithm {
                     Line::styled(alg.to_string(), Style::new().fg(Color::Green))
@@ -158,7 +159,7 @@ impl Widget for &App {
                     Line::from(alg.to_string())
                 }
             })
-            .to_vec();
+            .collect::<Vec<Line>>();
         Paragraph::new(algs)
             .block(Block::default().title("Algorithms").borders(Borders::ALL))
             .render(layout[1], buf);
