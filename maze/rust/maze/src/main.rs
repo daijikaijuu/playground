@@ -1,9 +1,7 @@
-use std::time::Duration;
-
 use iced::{
-    executor, theme, time,
+    time,
     widget::{button, column, pick_list, row, text, vertical_space},
-    window, Application, Command, Settings, Theme,
+    Element, Subscription, Theme,
 };
 mod ui;
 
@@ -26,28 +24,8 @@ enum Message {
     Tick,
 }
 
-impl Application for MainWindow {
-    type Message = Message;
-    type Theme = Theme;
-    type Executor = executor::Default;
-    type Flags = ();
-
-    fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        (
-            MainWindow {
-                maze_grid: MazeGrid::new(),
-                selected_algorithm: Some(Algorithm::default()),
-                selected_generator: Some(Algorithm::DFS),
-            },
-            Command::none(),
-        )
-    }
-
-    fn title(&self) -> String {
-        String::from("Maze crawler")
-    }
-
-    fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
+impl MainWindow {
+    fn update(&mut self, message: Message) {
         match message {
             Message::AlgorithmSelected(algorithm) => {
                 self.selected_algorithm = Some(algorithm);
@@ -62,15 +40,12 @@ impl Application for MainWindow {
             }
             Message::FindPath => self.maze_grid.start(),
             Message::Tick => {
-                return Command::perform(async {}, |_| {
-                    Message::MazeGrid(ui::maze_grid::Message::Tick)
-                });
+                self.maze_grid.tick();
             }
         }
-        Command::none()
     }
 
-    fn view(&self) -> iced::Element<'_, Self::Message, Self::Theme, iced::Renderer> {
+    fn view(&self) -> Element<Message> {
         let algorithm_selector_list = pick_list(
             Algorithm::pathfinding_algorithms(),
             self.selected_algorithm,
@@ -87,15 +62,13 @@ impl Application for MainWindow {
 
         let button_controls = row![
             button("Generate maze")
-                .on_press(Message::MazeGrid(ui::maze_grid::Message::GenerateMaze))
-                .style(theme::Button::Secondary),
+                .on_press(Message::MazeGrid(ui::maze_grid::Message::GenerateMaze)),
             button("Find path").on_press(Message::FindPath),
-            //button("Animate"), //.on_press(Message::MazeGrid(ui::maze_grid::Message::Animate)),
         ]
         .spacing(10);
 
         let top_controls = row![
-            text("Maze crawler".to_string()).size(20),
+            text("Maze crawler").size(20),
             algorithm_selector_list,
             generator_selector_list,
             button_controls,
@@ -110,22 +83,26 @@ impl Application for MainWindow {
         content.into()
     }
 
-    fn theme(&self) -> Self::Theme {
-        Theme::Dark
+    fn subscription(&self) -> Subscription<Message> {
+        time::every(std::time::Duration::from_millis(20)).map(|_| Message::Tick)
     }
+}
 
-    fn subscription(&self) -> iced::Subscription<Self::Message> {
-        time::every(Duration::from_millis(20)).map(|_| Message::Tick)
+impl Default for MainWindow {
+    fn default() -> Self {
+        Self {
+            maze_grid: MazeGrid::new(),
+            selected_algorithm: Some(Algorithm::default()),
+            selected_generator: Some(Algorithm::DFS),
+        }
     }
 }
 
 fn main() -> iced::Result {
-    MainWindow::run(Settings {
-        antialiasing: true,
-        window: window::Settings {
-            position: window::Position::Centered,
-            ..window::Settings::default()
-        },
-        ..Settings::default()
-    })
+    iced::application("Maze crawler", MainWindow::update, MainWindow::view)
+        .theme(|_| Theme::Dark)
+        .subscription(MainWindow::subscription)
+        .antialiasing(true)
+        .centered()
+        .run()
 }

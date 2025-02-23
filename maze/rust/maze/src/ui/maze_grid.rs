@@ -6,7 +6,7 @@ use std::{
 };
 
 use iced::{
-    alignment, mouse, theme,
+    alignment, mouse,
     widget::{
         canvas::{self, Cache, Geometry, Path, Stroke},
         column, container, row, text, Canvas,
@@ -32,7 +32,6 @@ pub struct MazeGrid {
 pub enum Message {
     GenerateMaze,
     SelectAlgorithm(Algorithm),
-    Tick,
 }
 
 impl MazeGrid {
@@ -44,7 +43,7 @@ impl MazeGrid {
             .generate(41, 41, 1, 1)
             .unwrap();
         MazeGrid {
-            maze: maze,
+            maze,
             grid_cache: Cache::default(),
             selected_algorithm: selected_generator,
             selected_generator,
@@ -62,14 +61,11 @@ impl MazeGrid {
 
         // Stats
         if let Some(st) = self.pathfinding_stats {
-            let steps = text(format!("Steps: {}", st.steps))
-                .horizontal_alignment(alignment::Horizontal::Left);
+            let steps = text(format!("Steps: {}", st.steps)).align_x(alignment::Horizontal::Left);
             let stats = column!(steps).width(Length::Shrink).padding(5);
-            let stats_container = container(stats)
-                .width(Length::FillPortion(1))
-                .style(theme::Container::Box);
+            let stats_container = container(stats).width(Length::FillPortion(1));
             row![canvas, stats_container]
-                .align_items(iced::Alignment::Start)
+                .align_y(iced::alignment::Vertical::Top)
                 .into()
         } else {
             canvas.into()
@@ -86,9 +82,6 @@ impl MazeGrid {
                 }
             }
             Message::GenerateMaze => self.generate_maze(),
-            Message::Tick => {
-                self.tick();
-            }
         }
     }
 

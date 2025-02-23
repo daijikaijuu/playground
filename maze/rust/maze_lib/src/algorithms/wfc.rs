@@ -54,7 +54,7 @@ impl WFC {
         }
     }
 
-    fn collapse_cell(
+    fn _collapse_cell(
         &self,
         point: Point,
         maze: &Maze,

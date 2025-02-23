@@ -3,13 +3,9 @@ use std::{
     sync::mpsc::Sender,
 };
 
-use crate::maze::{Maze, MazeCell};
-use rand::seq::SliceRandom;
+use crate::maze::MazeCell;
 
-use super::{
-    Algorithm, MazeGenerationAlgorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS,
-    MOVEMENTS_X2,
-};
+use super::{Algorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS};
 
 #[derive(Default)]
 pub struct BFS;
