@@ -60,7 +60,7 @@ impl Widget for MazeGrid {
                     maze_lib::MazeCell::Path => ("  ", Style::default().on_black()),
                     maze_lib::MazeCell::Entrance => ("░░", Style::default().blue()),
                     maze_lib::MazeCell::Exit => ("╒╕", Style::default().red()),
-                    maze_lib::MazeCell::Visited => ("  ", Style::default().on_dark_gray()),
+                    maze_lib::MazeCell::Visited => ("  ", Style::default().on_light_yellow()),
                     maze_lib::MazeCell::FinalPath => ("  ", Style::default().on_light_green()),
                 };
                 buf.set_string(
