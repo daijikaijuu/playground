@@ -3,8 +3,6 @@ use std::{
     sync::mpsc::Sender,
 };
 
-use crate::ThickMazeCell;
-
 use super::{Algorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS};
 
 #[derive(Default)]
@@ -39,22 +37,13 @@ impl PathfindingAlgorithm for BFS {
         let entrance = maze.get_entrance().expect("Cannot find entrance point");
         let exit = maze.get_exit().expect("Cannot find exit point");
 
-        let start = Point {
-            x: entrance.0,
-            y: entrance.1,
-        };
-        let goal = Point {
-            x: exit.0,
-            y: exit.1,
-        };
-
         let mut queue = VecDeque::new();
         let mut came_from: HashMap<Point, Point> = HashMap::new();
 
-        queue.push_back(start);
+        queue.push_back(entrance);
 
         while let Some(current) = queue.pop_front() {
-            maze.set_cell(current.x, current.y, ThickMazeCell::Visited);
+            maze.mark_cell_as_visited(current);
             sender
                 .send(PathfindingResult {
                     maze: maze.clone(),
@@ -62,11 +51,11 @@ impl PathfindingAlgorithm for BFS {
                 })
                 .unwrap();
 
-            if current == goal {
+            if current == exit {
                 // Reached the exit, reconstruct and visualize the path
                 let path = Self::reconstruct_path(&came_from, current);
                 for point in path.iter().skip(1) {
-                    maze.set_cell(point.x, point.y, ThickMazeCell::FinalPath);
+                    maze.mark_cell_as_final_path(*point);
 
                     // Send the updated maze to the main thread
                     sender
@@ -85,8 +74,8 @@ impl PathfindingAlgorithm for BFS {
                     y: (current.y as i32 + dy) as usize,
                 };
 
-                if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                    || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
+                if !maze.is_valid_coord(neighbor.x as i32, neighbor.y as i32)
+                    || maze.is_not_passable(current, neighbor)
                     || came_from.contains_key(&neighbor)
                 {
                     continue;

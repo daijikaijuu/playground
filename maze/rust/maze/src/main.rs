@@ -5,18 +5,20 @@ use iced::{
 };
 mod ui;
 
-use maze_lib::algorithms::Algorithm;
+use maze_lib::{algorithms::Algorithm, MazeType};
 use ui::MazeGrid;
 
 #[derive(Debug)]
 struct MainWindow {
     maze_grid: MazeGrid,
+    selected_maze_type: Option<MazeType>,
     selected_algorithm: Option<Algorithm>,
     selected_generator: Option<Algorithm>,
 }
 
 #[derive(Debug, Clone)]
 enum Message {
+    MazeTypeSelected(MazeType),
     AlgorithmSelected(Algorithm),
     GeneratorSelected(Algorithm),
     FindPath,
@@ -35,6 +37,10 @@ impl MainWindow {
                 self.selected_generator = Some(algorithm);
                 self.maze_grid.selected_generator = algorithm;
             }
+            Message::MazeTypeSelected(maze_type) => {
+                self.selected_maze_type = Some(maze_type);
+                self.maze_grid.selected_maze_type = maze_type;
+            }
             Message::MazeGrid(message) => {
                 self.maze_grid.update(message);
             }
@@ -46,6 +52,12 @@ impl MainWindow {
     }
 
     fn view(&self) -> Element<Message> {
+        // let maze_type_selector_list = pick_list(
+        //     MazeCell::cell_types(),
+        //     self.selected_maze_type,
+        //     Message::MazeTypeSelected,
+        // );
+
         let algorithm_selector_list = pick_list(
             Algorithm::pathfinding_algorithms(),
             self.selected_algorithm,
@@ -92,6 +104,7 @@ impl Default for MainWindow {
     fn default() -> Self {
         Self {
             maze_grid: MazeGrid::new(),
+            selected_maze_type: Some(MazeType::default()),
             selected_algorithm: Some(Algorithm::default()),
             selected_generator: Some(Algorithm::DFS),
         }

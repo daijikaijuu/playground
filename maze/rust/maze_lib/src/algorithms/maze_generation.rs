@@ -1,11 +1,13 @@
-use crate::Maze;
+use crate::{Maze, MazeType};
+
+use super::Point;
 
 pub trait MazeGenerationAlgorithm {
     fn generate(
         &mut self,
+        maze_type: MazeType,
         width: usize,
         height: usize,
-        start_x: usize,
-        start_y: usize,
+        entrance: Point,
     ) -> Option<Maze>;
 }

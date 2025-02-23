@@ -4,7 +4,7 @@ use std::{
     sync::mpsc::Sender,
 };
 
-use crate::{maze::Maze, ThickMazeCell};
+use crate::maze::Maze;
 
 use super::{pathfinding::PathfindingAlgorithm, Algorithm, PathfindingResult, Point, MOVEMENTS};
 
@@ -63,14 +63,8 @@ impl PathfindingAlgorithm for AStar {
         let entrance = maze.get_entrance().unwrap();
         let exit = maze.get_exit().unwrap();
 
-        let start = Point {
-            x: entrance.0,
-            y: entrance.1,
-        };
-        let goal = Point {
-            x: exit.0,
-            y: exit.1,
-        };
+        let start = entrance;
+        let goal = exit;
 
         let mut open_set = BinaryHeap::new();
         let mut came_from: HashMap<Point, Point> = HashMap::new();
@@ -85,7 +79,7 @@ impl PathfindingAlgorithm for AStar {
 
         while let Some(current_node) = open_set.pop() {
             let current = current_node.point;
-            maze.set_cell(current.x, current.y, ThickMazeCell::Visited);
+            maze.mark_cell_as_visited(current);
             sender
                 .send(PathfindingResult {
                     maze: maze.clone(),
@@ -96,7 +90,7 @@ impl PathfindingAlgorithm for AStar {
             if current == goal {
                 let path = AStar::reconstruct_path(&came_from, current);
                 for point in path.iter().skip(1) {
-                    maze.set_cell(point.x, point.y, ThickMazeCell::FinalPath);
+                    maze.mark_cell_as_final_path(*point);
 
                     sender
                         .send(PathfindingResult {
@@ -114,8 +108,8 @@ impl PathfindingAlgorithm for AStar {
                     y: (current.y as i32 + dy) as usize,
                 };
 
-                if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                    || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
+                if !maze.is_valid_coord(neighbor.x as i32, neighbor.y as i32)
+                    || maze.is_not_passable(current, neighbor)
                 {
                     continue;
                 }

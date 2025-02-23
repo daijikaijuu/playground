@@ -3,7 +3,7 @@ use std::sync::mpsc::Sender;
 
 use rand::seq::SliceRandom;
 
-use crate::{algorithms::MOVEMENTS_X2, maze::Maze, ThickMazeCell};
+use crate::{algorithms::MOVEMENTS_X2, maze::Maze, MazeType, ThickMazeCell};
 
 use super::{
     pathfinding::PathfindingAlgorithm, Algorithm, MazeGenerationAlgorithm, PathfindingResult,
@@ -26,18 +26,16 @@ impl Backtracking {
         &mut self,
         maze: &mut Maze,
         sender: &Sender<PathfindingResult>,
-        x: usize,
-        y: usize,
-        exit_x: usize,
-        exit_y: usize,
+        current: Point,
+        exit: Point,
     ) -> bool {
-        maze.set_cell(x, y, ThickMazeCell::Visited); // Mark cell as visited
+        maze.mark_cell_as_visited(current);
 
         // Update stats
         self.stats.new_step();
 
         // If we've reached the exit, stop recursion
-        if x == exit_x && y == exit_y {
+        if current == exit {
             sender
                 .send(PathfindingResult {
                     maze: maze.clone(),
@@ -52,10 +50,10 @@ impl Backtracking {
         let shuffled_directions = directions.choose_multiple(&mut rng, directions.len());
 
         for &(dx, dy) in shuffled_directions {
-            let new_x: i32 = x as i32 + dx;
-            let new_y: i32 = y as i32 + dy;
+            let new_x: i32 = current.x as i32 + dx;
+            let new_y: i32 = current.y as i32 + dy;
 
-            if maze.is_valid_move(new_x, new_y)
+            if maze.is_valid_coord(new_x, new_y)
                 && (maze.get_cell(new_x as usize, new_y as usize) == ThickMazeCell::Path
                     || maze.get_cell(new_x as usize, new_y as usize) == ThickMazeCell::Exit)
             {
@@ -67,12 +65,20 @@ impl Backtracking {
                     .unwrap();
 
                 // Mark the final path
-                maze.set_cell(x, y, ThickMazeCell::FinalPath);
+                maze.mark_cell_as_final_path(current);
                 // Mark the path recursively backtrack
-                if self.backtrack(maze, sender, new_x as usize, new_y as usize, exit_x, exit_y) {
+                if self.backtrack(
+                    maze,
+                    sender,
+                    Point {
+                        x: new_x as usize,
+                        y: new_y as usize,
+                    },
+                    exit,
+                ) {
                     return true;
                 } else {
-                    maze.set_cell(x, y, ThickMazeCell::Visited);
+                    maze.mark_cell_as_visited(current);
                 }
             }
         }
@@ -88,7 +94,7 @@ impl PathfindingAlgorithm for Backtracking {
         let entrance = maze.get_entrance().expect("Cannot find entrance");
         let exit = maze.get_exit().expect("Cannot find exit");
 
-        self.backtrack(maze, sender, entrance.0, entrance.1, exit.0, exit.1);
+        self.backtrack(maze, sender, entrance, exit);
     }
 
     fn name(&self) -> Algorithm {
@@ -103,12 +109,12 @@ impl PathfindingAlgorithm for Backtracking {
 impl MazeGenerationAlgorithm for Backtracking {
     fn generate(
         &mut self,
+        maze_type: MazeType,
         width: usize,
         height: usize,
-        start_x: usize,
-        start_y: usize,
+        entrance: Point,
     ) -> Option<Maze> {
-        let mut maze = Maze::new(width, height);
+        let mut maze = Maze::new(width, height, maze_type);
         let mut rng = rand::thread_rng();
         let mut visited = HashSet::new();
 
@@ -119,7 +125,7 @@ impl MazeGenerationAlgorithm for Backtracking {
             rng: &mut impl rand::Rng,
         ) {
             visited.insert(current);
-            maze.set_cell(current.x, current.y, ThickMazeCell::Path);
+            maze.mark_cell_as_path(current);
 
             let mut directions = MOVEMENTS_X2.to_vec();
             directions.shuffle(rng);
@@ -128,7 +134,7 @@ impl MazeGenerationAlgorithm for Backtracking {
                 let new_x = current.x as i32 + dx;
                 let new_y = current.y as i32 + dy;
 
-                if maze.is_valid_move(new_x, new_y) {
+                if maze.is_valid_coord(new_x, new_y) {
                     let next = Point {
                         x: new_x as usize,
                         y: new_y as usize,
@@ -136,27 +142,22 @@ impl MazeGenerationAlgorithm for Backtracking {
 
                     if !visited.contains(&next) {
                         // Carve path between current and next
-                        maze.set_cell(
-                            (current.x + next.x) / 2,
-                            (current.y + next.y) / 2,
-                            ThickMazeCell::Path,
-                        );
+                        maze.mark_cell_as_path(Point {
+                            x: (current.x + next.x) / 2,
+                            y: (current.y + next.y) / 2,
+                        });
                         generate_maze_recursive(next, maze, visited, rng);
                     }
                 }
             }
         }
 
-        let start = Point {
-            x: start_x,
-            y: start_y,
-        };
-        generate_maze_recursive(start, &mut maze, &mut visited, &mut rng);
+        generate_maze_recursive(entrance, &mut maze, &mut visited, &mut rng);
 
         // Set entrance and exit
-        maze.set_cell(start_x, start_y, ThickMazeCell::Entrance);
+        maze.mark_cell_as_entrance(entrance);
         let exit_point = maze.get_random_boundary_point(&mut rng);
-        maze.set_cell(exit_point.0, exit_point.1, ThickMazeCell::Exit);
+        maze.mark_cell_as_exit(exit_point);
 
         maze.backup();
         Some(maze)

@@ -1,7 +1,7 @@
 use rand::{rngs::ThreadRng, seq::SliceRandom};
 use std::{collections::HashSet, sync::mpsc::Sender};
 
-use crate::{maze::Maze, ThickMazeCell};
+use crate::{maze::Maze, MazeCell, MazeType, ThickMazeCell, ThickMazeCellType};
 
 use super::{
     Algorithm, MazeGenerationAlgorithm, PathfindingAlgorithm, PathfindingResult, PathfindingStats,
@@ -29,7 +29,7 @@ impl DFS {
         visited: &mut HashSet<Point>,
     ) -> bool {
         visited.insert(current);
-        maze.set_cell(current.x, current.y, ThickMazeCell::FinalPath);
+        maze.mark_cell_as_final_path(current);
         self.stats.new_step();
 
         if current == goal {
@@ -42,12 +42,12 @@ impl DFS {
                 y: (current.y as i32 + dy) as usize,
             };
 
-            if maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
+            if maze.is_valid_coord(neighbor.x as i32, neighbor.y as i32)
                 && !visited.contains(&Point {
                     x: neighbor.x,
                     y: neighbor.y,
                 })
-                && maze.get_cell(neighbor.x, neighbor.y) != ThickMazeCell::Wall
+                && maze.is_passable(current, neighbor)
             {
                 sender
                     .send(PathfindingResult {
@@ -57,7 +57,7 @@ impl DFS {
                     .unwrap();
 
                 // Mark the final path
-                maze.set_cell(neighbor.x, neighbor.y, ThickMazeCell::FinalPath);
+                maze.mark_cell_as_final_path(neighbor);
 
                 if self.depth_first_search(
                     Point {
@@ -72,7 +72,7 @@ impl DFS {
                     return true;
                 } else {
                     visited.remove(&neighbor);
-                    maze.set_cell(neighbor.x, neighbor.y, ThickMazeCell::Visited);
+                    maze.mark_cell_as_visited(neighbor);
                 }
             }
         }
@@ -87,19 +87,20 @@ impl DFS {
             let new_x = current.x as i32 + dx;
             let new_y = current.y as i32 + dy;
 
-            if maze.is_valid_move(new_x, new_y) {
-                let nx = new_x as usize;
-                let ny = new_y as usize;
+            if maze.is_valid_coord(new_x, new_y) {
+                let neighbor = Point {
+                    x: new_x as usize,
+                    y: new_y as usize,
+                };
 
-                if maze.get_cell(nx, ny) == ThickMazeCell::Wall {
-                    maze.set_cell(nx, ny, ThickMazeCell::Path);
-                    maze.set_cell(
-                        (current.x + nx) / 2,
-                        (current.y + ny) / 2,
-                        ThickMazeCell::Path,
-                    );
+                if maze.is_not_passable(current, neighbor) {
+                    maze.mark_cell_as_path(neighbor);
+                    maze.mark_cell_as_path(Point {
+                        x: (current.x + neighbor.x) / 2,
+                        y: (current.y + neighbor.y) / 2,
+                    });
 
-                    DFS::depth_first_maze_generation(Point { x: nx, y: ny }, maze, rng);
+                    DFS::depth_first_maze_generation(neighbor, maze, rng);
                 }
             }
         }
@@ -113,19 +114,7 @@ impl PathfindingAlgorithm for DFS {
         let exit = maze.get_exit().expect("Cannot find exit");
 
         let mut visited = HashSet::new();
-        self.depth_first_search(
-            Point {
-                x: entrance.0,
-                y: entrance.1,
-            },
-            Point {
-                x: exit.0,
-                y: exit.1,
-            },
-            maze,
-            sender,
-            &mut visited,
-        );
+        self.depth_first_search(entrance, exit, maze, sender, &mut visited);
     }
 
     fn name(&self) -> super::Algorithm {
@@ -140,27 +129,27 @@ impl PathfindingAlgorithm for DFS {
 impl MazeGenerationAlgorithm for DFS {
     fn generate(
         &mut self,
+        maze_type: MazeType,
         width: usize,
         height: usize,
-        start_x: usize,
-        start_y: usize,
+        entrance: Point,
     ) -> Option<Maze> {
-        let mut maze = Maze::new(width, height);
+        let mut maze = Maze::new(
+            width,
+            height,
+            maze_type,
+            Some(MazeCell::Thick(ThickMazeCell {
+                cell: ThickMazeCellType::Wall,
+            })),
+        );
         let mut rng = rand::thread_rng();
 
-        maze.set_cell(start_x, start_y, ThickMazeCell::Path);
-        DFS::depth_first_maze_generation(
-            Point {
-                x: start_x,
-                y: start_y,
-            },
-            &mut maze,
-            &mut rng,
-        );
+        maze.mark_cell_as_path(entrance);
+        DFS::depth_first_maze_generation(entrance, &mut maze, &mut rng);
 
-        maze.set_cell(start_x, start_y, ThickMazeCell::Entrance);
+        maze.mark_cell_as_entrance(entrance);
         let exit_point = maze.get_random_boundary_point(&mut rng);
-        maze.set_cell(exit_point.0, exit_point.1, ThickMazeCell::Exit);
+        maze.mark_cell_as_exit(exit_point);
 
         maze.backup();
 

@@ -14,7 +14,7 @@ use iced::{
     Color, Element, Length, Point, Rectangle, Renderer, Size, Theme,
 };
 
-use maze_lib::{algorithms::*, Maze, ThickMazeCell};
+use maze_lib::{algorithms::*, Maze, MazeCell, MazeType, SlimWallsCellType, ThickMazeCellType};
 
 #[derive(Debug)]
 pub struct MazeGrid {
@@ -24,6 +24,7 @@ pub struct MazeGrid {
     animation_state: PathfindingAnimationState,
     pub selected_algorithm: Algorithm,
     pub selected_generator: Algorithm,
+    pub selected_maze_type: MazeType,
     pathfinding_stats: Option<PathfindingStats>,
     pathfinding_state: PathfindingState,
 }
@@ -33,15 +34,21 @@ pub struct MazeGrid {
 pub enum Message {
     GenerateMaze,
     SelectAlgorithm(Algorithm),
+    SelectMazeType(MazeCell),
 }
 
 impl MazeGrid {
     pub fn new() -> Self {
-        let selected_generator = Algorithm::default();
+        let selected_generator = Algorithm::DFS;
         let maze = selected_generator
             .get_maze_generator()
             .expect("Default generator should exist")
-            .generate(41, 41, 1, 1)
+            .generate(
+                maze_lib::MazeType::Thick,
+                41,
+                41,
+                maze_lib::algorithms::Point { x: 1, y: 1 },
+            )
             .unwrap();
         MazeGrid {
             maze,
@@ -50,6 +57,7 @@ impl MazeGrid {
             selected_generator,
             animation_queue: VecDeque::new(),
             animation_state: PathfindingAnimationState::default(),
+            selected_maze_type: MazeType::Thick,
             pathfinding_stats: None,
             pathfinding_state: PathfindingState::default(),
         }
@@ -83,6 +91,7 @@ impl MazeGrid {
                 }
             }
             Message::GenerateMaze => self.generate_maze(),
+            Message::SelectMazeType(_) => todo!(),
         }
     }
 
@@ -123,10 +132,10 @@ impl MazeGrid {
                 let mut astar = AStar::new();
                 astar.find_path(&mut maze, &sender);
             }
-            Algorithm::Backtracking => {
-                let mut backtracking = Backtracking::new();
-                backtracking.find_path(&mut maze, &sender);
-            }
+            // Algorithm::Backtracking => {
+            //     let mut backtracking = Backtracking::new();
+            //     backtracking.find_path(&mut maze, &sender);
+            // }
             Algorithm::BellmanFord => {
                 let mut bellman_ford = BellmanFord;
                 bellman_ford.find_path(&mut maze, &sender);
@@ -161,7 +170,12 @@ impl MazeGrid {
     fn generate_maze(&mut self) {
         if let Some(mut generator) = self.selected_generator.get_maze_generator() {
             self.maze = generator
-                .generate(self.maze.width, self.maze.height, 1, 1)
+                .generate(
+                    maze_lib::MazeType::Thick,
+                    self.maze.width,
+                    self.maze.height,
+                    maze_lib::algorithms::Point { x: 1, y: 1 },
+                )
                 .unwrap();
             self.grid_cache.clear();
             self.animation_queue.clear();
@@ -196,13 +210,25 @@ impl canvas::Program<Message> for MazeGrid {
                     frame.fill_rectangle(
                         starting_point,
                         size,
-                        match self.maze.get_cell(row, col) {
-                            ThickMazeCell::Wall => Color::from_rgb8(100, 100, 100),
-                            ThickMazeCell::Path => Color::from_rgb8(255, 255, 255),
-                            ThickMazeCell::Entrance => Color::from_rgb8(0, 0, 255),
-                            ThickMazeCell::Exit => Color::from_rgb8(255, 0, 0),
-                            ThickMazeCell::Visited => Color::from_rgb8(0, 0, 100),
-                            ThickMazeCell::FinalPath => Color::from_rgb8(100, 155, 255),
+                        match self
+                            .maze
+                            .get_cell(maze_lib::algorithms::Point { x: row, y: col })
+                        {
+                            MazeCell::Thick(thick_cell) => match thick_cell.cell {
+                                ThickMazeCellType::Wall => Color::from_rgb8(100, 100, 100),
+                                ThickMazeCellType::Path => Color::from_rgb8(255, 255, 255),
+                                ThickMazeCellType::Entrance => Color::from_rgb8(0, 0, 255),
+                                ThickMazeCellType::Exit => Color::from_rgb8(255, 0, 0),
+                                ThickMazeCellType::Visited => Color::from_rgb8(0, 0, 100),
+                                ThickMazeCellType::FinalPath => Color::from_rgb8(100, 155, 255),
+                            },
+                            MazeCell::Slim(slim_cell) => match slim_cell.cell {
+                                SlimWallsCellType::Path => Color::from_rgb8(255, 255, 255),
+                                SlimWallsCellType::Entrance => Color::from_rgb8(0, 0, 255),
+                                SlimWallsCellType::Exit => Color::from_rgb8(255, 0, 0),
+                                SlimWallsCellType::Visited => Color::from_rgb8(0, 0, 100),
+                                SlimWallsCellType::FinalPath => Color::from_rgb8(100, 155, 255),
+                            },
                         },
                     );
                     frame.stroke(

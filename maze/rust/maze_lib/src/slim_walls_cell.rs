@@ -1,6 +1,17 @@
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
+pub enum SlimWallsCellType {
+    #[default]
+    Path,
+    Entrance,
+    Exit,
+    Visited,
+    FinalPath,
+}
+
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub struct SlimWallsCell {
     pub walls: u8,
+    pub cell: SlimWallsCellType,
 }
 
 impl SlimWallsCell {
@@ -10,7 +21,10 @@ impl SlimWallsCell {
     const BOTTOM_WALL: u8 = 0b0001;
 
     pub fn new() -> SlimWallsCell {
-        SlimWallsCell { walls: 0 }
+        SlimWallsCell {
+            walls: 0,
+            cell: SlimWallsCellType::Path,
+        }
     }
 
     pub fn has_left_wall(&self) -> bool {

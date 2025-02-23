@@ -9,7 +9,7 @@ use enum_iterator::{next_cycle, previous_cycle};
 use maze_lib::{
     algorithms::{
         self, Algorithm, BellmanFord, MazeGenerationAlgorithm, PathfindingAlgorithm,
-        PathfindingAnimationState, PathfindingResult, PathfindingState, DFS,
+        PathfindingAnimationState, PathfindingResult, PathfindingState, Point, DFS,
     },
     Maze,
 };
@@ -37,7 +37,9 @@ pub struct App {
 impl App {
     pub fn new() -> Self {
         let mut dfs = DFS::new();
-        let maze = dfs.generate(41, 41, 1, 1).unwrap();
+        let maze = dfs
+            .generate(maze_lib::MazeType::Thick, 41, 41, Point { x: 1, y: 1 })
+            .unwrap();
         App {
             maze,
             selected_algorithm: Algorithm::default(),
@@ -55,7 +57,9 @@ impl App {
     pub fn reset_maze(&mut self) {
         self.animation_steps.clear();
         let mut dfs = DFS::new();
-        self.maze = dfs.generate(41, 41, 1, 1).unwrap();
+        self.maze = dfs
+            .generate(maze_lib::MazeType::Thick, 41, 41, Point { x: 1, y: 1 })
+            .unwrap();
         self.animation_state = PathfindingAnimationState::default();
         self.pathfinding_state = PathfindingState::default();
     }
@@ -75,10 +79,10 @@ impl App {
                 let mut astar = algorithms::AStar::new();
                 astar.find_path(&mut maze, &sender)
             }
-            Algorithm::Backtracking => {
-                let mut backtracking = algorithms::Backtracking::new();
-                backtracking.find_path(&mut maze, &sender);
-            }
+            // Algorithm::Backtracking => {
+            //     let mut backtracking = algorithms::Backtracking::new();
+            //     backtracking.find_path(&mut maze, &sender);
+            // }
             Algorithm::BellmanFord => {
                 let mut bellman_ford = BellmanFord;
                 bellman_ford.find_path(&mut maze, &sender);

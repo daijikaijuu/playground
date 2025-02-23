@@ -126,7 +126,7 @@ impl MazeGenerationAlgorithm for WFC {
                 && path_count < 2
             // Limit to 2 initial paths
             {
-                maze.set_cell(new_x, new_y, ThickMazeCell::Path);
+                maze.mark_cell_as_path(Point { x: new_x, y: new_y });
                 collapsed.insert(Point { x: new_x, y: new_y }, true);
                 path_count += 1;
             }

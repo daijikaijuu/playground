@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::mpsc::Sender};
 
-use crate::{algorithms::MOVEMENTS, Maze, ThickMazeCell};
+use crate::{algorithms::MOVEMENTS, Maze};
 
 use super::{PathfindingAlgorithm, PathfindingResult, Point};
 
@@ -26,7 +26,7 @@ impl BellmanFord {
             predecessor.insert(neighbor, current);
 
             // Visualize the update by marking the cell as Visited ans sending the updated maze
-            maze.set_cell(neighbor.x, neighbor.y, ThickMazeCell::Visited);
+            maze.mark_cell_as_visited(neighbor);
             sender
                 .send(PathfindingResult {
                     stats: None,
@@ -61,7 +61,7 @@ impl BellmanFord {
         path.reverse();
 
         for point in path.iter().skip(1) {
-            maze.set_cell(point.x, point.y, ThickMazeCell::FinalPath);
+            maze.mark_cell_as_final_path(*point);
 
             sender
                 .send(PathfindingResult {
@@ -78,15 +78,6 @@ impl PathfindingAlgorithm for BellmanFord {
         let entrance = maze.get_entrance().expect("Entrance not found");
         let exit = maze.get_exit().expect("Exit not found");
 
-        let start = Point {
-            x: entrance.0,
-            y: entrance.1,
-        };
-        let goal = Point {
-            x: exit.0,
-            y: exit.1,
-        };
-
         let mut distance: HashMap<Point, i32> = HashMap::new();
         let mut predecessor: HashMap<Point, Point> = HashMap::new();
 
@@ -97,7 +88,7 @@ impl PathfindingAlgorithm for BellmanFord {
             }
         }
 
-        distance.insert(start, 0);
+        distance.insert(entrance, 0);
 
         let mut optimal_route_found = false;
 
@@ -112,8 +103,8 @@ impl PathfindingAlgorithm for BellmanFord {
                             y: (y as i32 + dy) as usize,
                         };
 
-                        if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                            || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
+                        if !maze.is_valid_coord(neighbor.x as i32, neighbor.y as i32)
+                            || maze.is_not_passable(current, neighbor)
                         {
                             continue;
                         }
@@ -121,7 +112,7 @@ impl PathfindingAlgorithm for BellmanFord {
                         BellmanFord::relax_edges(
                             current,
                             neighbor,
-                            goal,
+                            exit,
                             maze,
                             &mut distance,
                             &mut predecessor,
@@ -130,7 +121,7 @@ impl PathfindingAlgorithm for BellmanFord {
                         );
 
                         if optimal_route_found {
-                            self.reconstruct_path(start, goal, maze, &mut predecessor, sender);
+                            self.reconstruct_path(entrance, exit, maze, &mut predecessor, sender);
                             return;
                         }
                     }
@@ -149,8 +140,8 @@ impl PathfindingAlgorithm for BellmanFord {
                         y: (current.y as i32 + dy) as usize,
                     };
 
-                    if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                        || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
+                    if !maze.is_valid_coord(neighbor.x as i32, neighbor.y as i32)
+                        || maze.is_not_passable(current, neighbor)
                     {
                         continue;
                     }

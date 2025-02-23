@@ -4,7 +4,6 @@ use std::{
 };
 
 use crate::maze::Maze;
-use crate::ThickMazeCell;
 
 use super::{Algorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS};
 
@@ -53,28 +52,19 @@ impl PathfindingAlgorithm for Dijkstra {
         let entrance = maze.get_entrance().expect("Cannot find entrance point");
         let exit = maze.get_exit().expect("Cannot find exit point");
 
-        let start = Point {
-            x: entrance.0,
-            y: entrance.1,
-        };
-        let goal = Point {
-            x: exit.0,
-            y: exit.1,
-        };
-
         let mut open_set = BinaryHeap::new();
         let mut came_from: HashMap<Point, Point> = HashMap::new();
         let mut costs: HashMap<Point, u32> = HashMap::new();
 
         open_set.push(Node {
-            point: start,
+            point: entrance,
             cost: 0,
         });
-        costs.insert(start, 0);
+        costs.insert(entrance, 0);
 
         while let Some(current_node) = open_set.pop() {
             let current = current_node.point;
-            maze.set_cell(current.x, current.y, ThickMazeCell::Visited);
+            maze.mark_cell_as_visited(current);
             sender
                 .send(PathfindingResult {
                     stats: None,
@@ -82,11 +72,11 @@ impl PathfindingAlgorithm for Dijkstra {
                 })
                 .unwrap();
 
-            if current == goal {
+            if current == exit {
                 // Reached the exit, reconstruct and visualize the path
                 let path = Self::reconstruct_path(&came_from, current);
                 for point in path.iter().skip(1) {
-                    maze.set_cell(point.x, point.y, ThickMazeCell::FinalPath);
+                    maze.mark_cell_as_final_path(*point);
 
                     // Send the updated maze to the mazin thread
                     sender
@@ -105,8 +95,8 @@ impl PathfindingAlgorithm for Dijkstra {
                     y: (current.y as i32 + dy) as usize,
                 };
 
-                if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                    || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
+                if !maze.is_valid_coord(neighbor.x as i32, neighbor.y as i32)
+                    || maze.is_not_passable(current, neighbor)
                 {
                     continue;
                 }

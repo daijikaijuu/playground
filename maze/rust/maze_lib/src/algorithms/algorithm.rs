@@ -1,5 +1,5 @@
 use super::MazeGenerationAlgorithm;
-use super::{Backtracking, DFS, WFC};
+use super::DFS;
 use enum_iterator::Sequence;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Sequence)]
@@ -26,13 +26,12 @@ impl Algorithm {
     ];
 
     pub fn maze_generation_algorithms() -> Vec<Algorithm> {
-        vec![Algorithm::DFS, Algorithm::Backtracking, Algorithm::WFC]
+        vec![Algorithm::DFS]
     }
 
     pub fn pathfinding_algorithms() -> Vec<Algorithm> {
         vec![
             Algorithm::AStar,
-            Algorithm::Backtracking,
             Algorithm::BellmanFord,
             Algorithm::BFS,
             Algorithm::DFS,
@@ -47,8 +46,8 @@ impl Algorithm {
     pub fn get_maze_generator(&self) -> Option<Box<dyn MazeGenerationAlgorithm>> {
         match self {
             Algorithm::DFS => Some(Box::new(DFS::default())),
-            Algorithm::Backtracking => Some(Box::new(Backtracking::default())),
-            Algorithm::WFC => Some(Box::new(WFC::default())),
+            // Algorithm::Backtracking => Some(Box::new(Backtracking::default())),
+            // Algorithm::WFC => Some(Box::new(WFC::default())),
             _ => None,
         }
     }
