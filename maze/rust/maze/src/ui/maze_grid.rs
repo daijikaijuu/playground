@@ -29,6 +29,7 @@ pub struct MazeGrid {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum Message {
     GenerateMaze,
     SelectAlgorithm(Algorithm),

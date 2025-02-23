@@ -58,7 +58,7 @@ impl WFC {
         &self,
         point: Point,
         maze: &Maze,
-        collapsed: &HashMap<Point, bool>,
+        _collapsed: &HashMap<Point, bool>,
         rng: &mut impl Rng,
     ) -> MazeCell {
         let neighbors = self.get_valid_neighbors(maze, point.x, point.y);

@@ -3,12 +3,8 @@ use maze_lib::{
     Maze,
 };
 use ratatui::{
-    layout::Alignment,
     style::{Style, Stylize},
-    widgets::{
-        block::{Position, Title},
-        Block, Borders, Widget,
-    },
+    widgets::{block::Title, Block, Borders, Widget},
 };
 
 pub struct MazeGrid {
@@ -48,13 +44,9 @@ impl Widget for MazeGrid {
         });
         let maze_block_title = Title::from("Maze crawler".bold());
         Block::default()
-            .title(maze_block_title.alignment(Alignment::Center))
-            .title(state_title.position(Position::Bottom))
-            .title(
-                animation_state_title
-                    .position(Position::Bottom)
-                    .alignment(Alignment::Right),
-            )
+            .title(maze_block_title)
+            .title(state_title)
+            .title(animation_state_title)
             .borders(Borders::ALL)
             .render(area, buf);
 
