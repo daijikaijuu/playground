@@ -2,29 +2,20 @@ use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::fmt;
 
-#[derive(Clone, Copy, PartialEq, Debug, Default)]
-pub enum MazeCell {
-    Wall,
-    #[default]
-    Path,
-    Entrance,
-    Exit,
-    Visited,
-    FinalPath,
-}
+use crate::thick_walls_cell::ThickMazeCell;
 
 #[derive(Clone, Default)]
 pub struct Maze {
     pub width: usize,
     pub height: usize,
-    cells: Vec<MazeCell>,
-    original_cells: Vec<MazeCell>,
+    cells: Vec<ThickMazeCell>,
+    original_cells: Vec<ThickMazeCell>,
 }
 
 impl Maze {
     pub fn new(width: usize, height: usize) -> Self {
-        let cells = vec![MazeCell::Wall; width * height];
-        let original_cells = vec![MazeCell::Wall; width * height];
+        let cells = vec![ThickMazeCell::Wall; width * height];
+        let original_cells = vec![ThickMazeCell::Wall; width * height];
         Maze {
             width,
             height,
@@ -56,7 +47,7 @@ impl Maze {
             .iter()
             .enumerate()
             .find_map(|(index, &cell)| {
-                if cell == MazeCell::Entrance {
+                if cell == ThickMazeCell::Entrance {
                     Some((index % self.width, index / self.width))
                 } else {
                     None
@@ -70,7 +61,7 @@ impl Maze {
             .iter()
             .enumerate()
             .find_map(|(index, &cell)| {
-                if cell == MazeCell::Exit {
+                if cell == ThickMazeCell::Exit {
                     Some((index % self.width, index / self.width))
                 } else {
                     None
@@ -82,11 +73,11 @@ impl Maze {
         y * self.width + x
     }
 
-    pub fn get_cell(&self, x: usize, y: usize) -> MazeCell {
+    pub fn get_cell(&self, x: usize, y: usize) -> ThickMazeCell {
         self.cells[self.get_index(x, y)]
     }
 
-    pub fn set_cell(&mut self, x: usize, y: usize, value: MazeCell) {
+    pub fn set_cell(&mut self, x: usize, y: usize, value: ThickMazeCell) {
         let index = self.get_index(x, y);
         self.cells[index] = value;
     }
@@ -106,7 +97,7 @@ impl Maze {
             _ => unreachable!(),
         };
 
-        // Ensure at least one adjacent point is MazeCell::Path
+        // Ensure at least one adjacent point is ThickMazeCell::Path
         let adjacent_points = [
             (x, y.saturating_sub(1)),
             (x.wrapping_add(1), y),
@@ -117,7 +108,7 @@ impl Maze {
         if adjacent_points
             .iter()
             .any(|&(cx, cy)| match self.cells.get(self.get_index(cx, cy)) {
-                Some(x) => *x == MazeCell::Path,
+                Some(x) => *x == ThickMazeCell::Path,
                 None => false,
             })
         {
@@ -133,12 +124,12 @@ impl fmt::Debug for Maze {
         for y in 0..self.height {
             for x in 0..self.width {
                 match self.get_cell(x, y) {
-                    MazeCell::Wall => write!(f, "██")?,
-                    MazeCell::Path => write!(f, "  ")?,
-                    MazeCell::Entrance => write!(f, " >")?,
-                    MazeCell::Exit => write!(f, " E")?,
-                    MazeCell::Visited => write!(f, " v")?,
-                    MazeCell::FinalPath => write!(f, " F")?,
+                    ThickMazeCell::Wall => write!(f, "██")?,
+                    ThickMazeCell::Path => write!(f, "  ")?,
+                    ThickMazeCell::Entrance => write!(f, " >")?,
+                    ThickMazeCell::Exit => write!(f, " E")?,
+                    ThickMazeCell::Visited => write!(f, " v")?,
+                    ThickMazeCell::FinalPath => write!(f, " F")?,
                 }
             }
             writeln!(f)?;

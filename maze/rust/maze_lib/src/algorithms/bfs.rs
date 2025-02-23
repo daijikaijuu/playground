@@ -3,7 +3,7 @@ use std::{
     sync::mpsc::Sender,
 };
 
-use crate::maze::MazeCell;
+use crate::ThickMazeCell;
 
 use super::{Algorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS};
 
@@ -54,7 +54,7 @@ impl PathfindingAlgorithm for BFS {
         queue.push_back(start);
 
         while let Some(current) = queue.pop_front() {
-            maze.set_cell(current.x, current.y, MazeCell::Visited);
+            maze.set_cell(current.x, current.y, ThickMazeCell::Visited);
             sender
                 .send(PathfindingResult {
                     maze: maze.clone(),
@@ -66,7 +66,7 @@ impl PathfindingAlgorithm for BFS {
                 // Reached the exit, reconstruct and visualize the path
                 let path = Self::reconstruct_path(&came_from, current);
                 for point in path.iter().skip(1) {
-                    maze.set_cell(point.x, point.y, MazeCell::FinalPath);
+                    maze.set_cell(point.x, point.y, ThickMazeCell::FinalPath);
 
                     // Send the updated maze to the main thread
                     sender
@@ -86,7 +86,7 @@ impl PathfindingAlgorithm for BFS {
                 };
 
                 if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                    || maze.get_cell(neighbor.x, neighbor.y) == MazeCell::Wall
+                    || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
                     || came_from.contains_key(&neighbor)
                 {
                     continue;

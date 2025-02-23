@@ -1,5 +1,6 @@
 use super::{MazeGenerationAlgorithm, Point, MOVEMENTS};
-use crate::maze::{Maze, MazeCell};
+use crate::maze::Maze;
+use crate::ThickMazeCell;
 use rand::prelude::SliceRandom;
 use rand::Rng;
 use std::collections::HashMap;
@@ -43,7 +44,7 @@ impl WFC {
         let neighbors = self.get_valid_neighbors(maze, point.x, point.y);
         let path_neighbors = neighbors
             .iter()
-            .filter(|p| maze.get_cell(p.x, p.y) == MazeCell::Path)
+            .filter(|p| maze.get_cell(p.x, p.y) == ThickMazeCell::Path)
             .count();
 
         // Favor paths over walls
@@ -60,22 +61,22 @@ impl WFC {
         maze: &Maze,
         _collapsed: &HashMap<Point, bool>,
         rng: &mut impl Rng,
-    ) -> MazeCell {
+    ) -> ThickMazeCell {
         let neighbors = self.get_valid_neighbors(maze, point.x, point.y);
         let path_neighbors = neighbors
             .iter()
-            .filter(|p| maze.get_cell(p.x, p.y) == MazeCell::Path)
+            .filter(|p| maze.get_cell(p.x, p.y) == ThickMazeCell::Path)
             .count();
 
         // Enforce maze-like structure
         if path_neighbors >= 2 {
-            MazeCell::Wall
+            ThickMazeCell::Wall
         } else {
             // Randomly choose between path and wall, with higher probability of walls
             if rng.gen_bool(0.3) {
-                MazeCell::Path
+                ThickMazeCell::Path
             } else {
-                MazeCell::Wall
+                ThickMazeCell::Wall
             }
         }
     }
@@ -95,14 +96,14 @@ impl MazeGenerationAlgorithm for WFC {
 
         // Create borders
         for x in 0..width {
-            maze.set_cell(x, 0, MazeCell::Wall);
-            maze.set_cell(x, height - 1, MazeCell::Wall);
+            maze.set_cell(x, 0, ThickMazeCell::Wall);
+            maze.set_cell(x, height - 1, ThickMazeCell::Wall);
             collapsed.insert(Point { x, y: 0 }, true);
             collapsed.insert(Point { x, y: height - 1 }, true);
         }
         for y in 0..height {
-            maze.set_cell(0, y, MazeCell::Wall);
-            maze.set_cell(width - 1, y, MazeCell::Wall);
+            maze.set_cell(0, y, ThickMazeCell::Wall);
+            maze.set_cell(width - 1, y, ThickMazeCell::Wall);
             collapsed.insert(Point { x: 0, y }, true);
             collapsed.insert(Point { x: width - 1, y }, true);
         }
@@ -112,7 +113,7 @@ impl MazeGenerationAlgorithm for WFC {
             x: start_x,
             y: start_y,
         };
-        maze.set_cell(start_x, start_y, MazeCell::Entrance);
+        maze.set_cell(start_x, start_y, ThickMazeCell::Entrance);
         collapsed.insert(start, true);
 
         // Create initial paths around start point to ensure connectivity
@@ -125,7 +126,7 @@ impl MazeGenerationAlgorithm for WFC {
                 && path_count < 2
             // Limit to 2 initial paths
             {
-                maze.set_cell(new_x, new_y, MazeCell::Path);
+                maze.set_cell(new_x, new_y, ThickMazeCell::Path);
                 collapsed.insert(Point { x: new_x, y: new_y }, true);
                 path_count += 1;
             }
@@ -159,7 +160,7 @@ impl MazeGenerationAlgorithm for WFC {
                 let neighbors = self.get_valid_neighbors(&maze, point.x, point.y);
                 let path_neighbors = neighbors
                     .iter()
-                    .filter(|p| maze.get_cell(p.x, p.y) == MazeCell::Path)
+                    .filter(|p| maze.get_cell(p.x, p.y) == ThickMazeCell::Path)
                     .count();
 
                 // Increase path probability significantly
@@ -171,24 +172,24 @@ impl MazeGenerationAlgorithm for WFC {
                 };
 
                 let cell_type = if rng.gen_bool(path_probability) {
-                    MazeCell::Path
+                    ThickMazeCell::Path
                 } else {
-                    MazeCell::Wall
+                    ThickMazeCell::Wall
                 };
 
                 maze.set_cell(point.x, point.y, cell_type);
                 collapsed.insert(point, true);
 
                 // Improve connectivity logic
-                if cell_type == MazeCell::Path && path_neighbors == 0 {
+                if cell_type == ThickMazeCell::Path && path_neighbors == 0 {
                     let mut shuffled_neighbors = neighbors.clone();
                     shuffled_neighbors.shuffle(&mut rng);
 
                     for neighbor in shuffled_neighbors {
-                        if maze.get_cell(neighbor.x, neighbor.y) == MazeCell::Wall
+                        if maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
                             && !self.is_border(&maze, neighbor.x, neighbor.y)
                         {
-                            maze.set_cell(neighbor.x, neighbor.y, MazeCell::Path);
+                            maze.set_cell(neighbor.x, neighbor.y, ThickMazeCell::Path);
                             collapsed.insert(neighbor, true);
                             break;
                         }
@@ -200,7 +201,7 @@ impl MazeGenerationAlgorithm for WFC {
                     for x in 1..width - 1 {
                         let point = Point { x, y };
                         if !collapsed.contains_key(&point) {
-                            maze.set_cell(x, y, MazeCell::Path);
+                            maze.set_cell(x, y, ThickMazeCell::Path);
                             collapsed.insert(point, true);
                         }
                     }
@@ -261,7 +262,7 @@ impl MazeGenerationAlgorithm for WFC {
                     if maze.is_valid_move(new_x as i32, new_y as i32)
                         && !self.is_border(&maze, new_x, new_y)
                     {
-                        maze.set_cell(new_x, new_y, MazeCell::Path);
+                        maze.set_cell(new_x, new_y, ThickMazeCell::Path);
                     }
                 }
             }
@@ -276,19 +277,19 @@ impl MazeGenerationAlgorithm for WFC {
                 (0, 1),
             ];
             let chosen = border_points.choose(&mut rng).unwrap();
-            maze.set_cell(chosen.0, chosen.1, MazeCell::Path);
+            maze.set_cell(chosen.0, chosen.1, ThickMazeCell::Path);
             *chosen
         });
 
-        maze.set_cell(exit_point.0, exit_point.1, MazeCell::Exit);
+        maze.set_cell(exit_point.0, exit_point.1, ThickMazeCell::Exit);
 
         // After setting exit point, ensure there's a path from entrance to exit
         if let Some(path) = self.find_path_to_entrance(&mut maze, exit_point, (start_x, start_y)) {
             for &(x, y) in &path {
-                if maze.get_cell(x, y) != MazeCell::Entrance
-                    && maze.get_cell(x, y) != MazeCell::Exit
+                if maze.get_cell(x, y) != ThickMazeCell::Entrance
+                    && maze.get_cell(x, y) != ThickMazeCell::Exit
                 {
-                    maze.set_cell(x, y, MazeCell::Path);
+                    maze.set_cell(x, y, ThickMazeCell::Path);
                 }
             }
         }
@@ -310,7 +311,7 @@ impl WFC {
             let new_y = y as i32 + dy;
             if maze.is_valid_move(new_x, new_y) {
                 let cell = maze.get_cell(new_x as usize, new_y as usize);
-                if cell == MazeCell::Path {
+                if cell == ThickMazeCell::Path {
                     return true;
                 }
             }
@@ -325,7 +326,7 @@ impl WFC {
                 let new_x = x as i32 + dx;
                 let new_y = y as i32 + dy;
                 maze.is_valid_move(new_x, new_y)
-                    && maze.get_cell(new_x as usize, new_y as usize) == MazeCell::Path
+                    && maze.get_cell(new_x as usize, new_y as usize) == ThickMazeCell::Path
             })
             .count()
     }
@@ -366,9 +367,9 @@ impl WFC {
                     let next = (new_x as usize, new_y as usize);
                     let cell = maze.get_cell(next.0, next.1);
 
-                    if (cell == MazeCell::Path
-                        || cell == MazeCell::Entrance
-                        || cell == MazeCell::Exit)
+                    if (cell == ThickMazeCell::Path
+                        || cell == ThickMazeCell::Entrance
+                        || cell == ThickMazeCell::Exit)
                         && !visited.contains_key(&next)
                     {
                         visited.insert(next, current);

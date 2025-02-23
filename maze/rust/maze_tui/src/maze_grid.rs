@@ -56,12 +56,12 @@ impl Widget for MazeGrid {
         for col in 0..cols {
             for row in 0..rows {
                 let (value, color) = match self.maze.get_cell(col, row) {
-                    maze_lib::MazeCell::Wall => ("██", Style::default().on_black().white()),
-                    maze_lib::MazeCell::Path => ("  ", Style::default().on_black()),
-                    maze_lib::MazeCell::Entrance => ("░░", Style::default().blue()),
-                    maze_lib::MazeCell::Exit => ("╒╕", Style::default().red()),
-                    maze_lib::MazeCell::Visited => ("  ", Style::default().on_light_yellow()),
-                    maze_lib::MazeCell::FinalPath => ("  ", Style::default().on_light_green()),
+                    maze_lib::ThickMazeCell::Wall => ("██", Style::default().on_black().white()),
+                    maze_lib::ThickMazeCell::Path => ("  ", Style::default().on_black()),
+                    maze_lib::ThickMazeCell::Entrance => ("░░", Style::default().blue()),
+                    maze_lib::ThickMazeCell::Exit => ("╒╕", Style::default().red()),
+                    maze_lib::ThickMazeCell::Visited => ("  ", Style::default().on_light_yellow()),
+                    maze_lib::ThickMazeCell::FinalPath => ("  ", Style::default().on_light_green()),
                 };
                 buf.set_string(
                     area.left() + 1 + (col * 2) as u16,

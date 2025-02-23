@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::mpsc::Sender};
 
-use crate::{algorithms::MOVEMENTS, Maze, MazeCell};
+use crate::{algorithms::MOVEMENTS, Maze, ThickMazeCell};
 
 use super::{PathfindingAlgorithm, PathfindingResult, Point};
 
@@ -26,7 +26,7 @@ impl BellmanFord {
             predecessor.insert(neighbor, current);
 
             // Visualize the update by marking the cell as Visited ans sending the updated maze
-            maze.set_cell(neighbor.x, neighbor.y, MazeCell::Visited);
+            maze.set_cell(neighbor.x, neighbor.y, ThickMazeCell::Visited);
             sender
                 .send(PathfindingResult {
                     stats: None,
@@ -61,7 +61,7 @@ impl BellmanFord {
         path.reverse();
 
         for point in path.iter().skip(1) {
-            maze.set_cell(point.x, point.y, MazeCell::FinalPath);
+            maze.set_cell(point.x, point.y, ThickMazeCell::FinalPath);
 
             sender
                 .send(PathfindingResult {
@@ -113,7 +113,7 @@ impl PathfindingAlgorithm for BellmanFord {
                         };
 
                         if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                            || maze.get_cell(neighbor.x, neighbor.y) == MazeCell::Wall
+                            || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
                         {
                             continue;
                         }
@@ -150,7 +150,7 @@ impl PathfindingAlgorithm for BellmanFord {
                     };
 
                     if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                        || maze.get_cell(neighbor.x, neighbor.y) == MazeCell::Wall
+                        || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
                     {
                         continue;
                     }

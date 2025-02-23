@@ -4,7 +4,7 @@ use std::{
     sync::mpsc::Sender,
 };
 
-use crate::maze::{Maze, MazeCell};
+use crate::{maze::Maze, ThickMazeCell};
 
 use super::{pathfinding::PathfindingAlgorithm, Algorithm, PathfindingResult, Point, MOVEMENTS};
 
@@ -85,7 +85,7 @@ impl PathfindingAlgorithm for AStar {
 
         while let Some(current_node) = open_set.pop() {
             let current = current_node.point;
-            maze.set_cell(current.x, current.y, MazeCell::Visited);
+            maze.set_cell(current.x, current.y, ThickMazeCell::Visited);
             sender
                 .send(PathfindingResult {
                     maze: maze.clone(),
@@ -96,7 +96,7 @@ impl PathfindingAlgorithm for AStar {
             if current == goal {
                 let path = AStar::reconstruct_path(&came_from, current);
                 for point in path.iter().skip(1) {
-                    maze.set_cell(point.x, point.y, MazeCell::FinalPath);
+                    maze.set_cell(point.x, point.y, ThickMazeCell::FinalPath);
 
                     sender
                         .send(PathfindingResult {
@@ -115,7 +115,7 @@ impl PathfindingAlgorithm for AStar {
                 };
 
                 if !maze.is_valid_move(neighbor.x as i32, neighbor.y as i32)
-                    || maze.get_cell(neighbor.x, neighbor.y) == MazeCell::Wall
+                    || maze.get_cell(neighbor.x, neighbor.y) == ThickMazeCell::Wall
                 {
                     continue;
                 }
