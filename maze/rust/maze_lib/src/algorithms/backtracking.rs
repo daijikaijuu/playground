@@ -3,11 +3,11 @@ use std::sync::mpsc::Sender;
 
 use rand::seq::SliceRandom;
 
-use crate::{algorithms::MOVEMENTS_X2, maze::Maze, MazeType, ThickMazeCell};
+use crate::{maze::Maze, MazeType};
 
 use super::{
-    pathfinding::PathfindingAlgorithm, Algorithm, MazeGenerationAlgorithm, PathfindingResult,
-    PathfindingStats, Point, MOVEMENTS,
+    pathfinding::PathfindingAlgorithm, Algorithm, MazeGenerationAlgorithm, Movements,
+    PathfindingResult, PathfindingStats, Point,
 };
 
 #[derive(Default)]
@@ -45,17 +45,20 @@ impl Backtracking {
             return true;
         }
 
-        let directions = &MOVEMENTS;
+        let directions = &Movements::directions();
         let mut rng = rand::thread_rng();
         let shuffled_directions = directions.choose_multiple(&mut rng, directions.len());
 
         for &(dx, dy) in shuffled_directions {
             let new_x: i32 = current.x as i32 + dx;
             let new_y: i32 = current.y as i32 + dy;
+            let neighbor = Point {
+                x: new_x as usize,
+                y: new_y as usize,
+            };
 
             if maze.is_valid_coord(new_x, new_y)
-                && (maze.get_cell(new_x as usize, new_y as usize) == ThickMazeCell::Path
-                    || maze.get_cell(new_x as usize, new_y as usize) == ThickMazeCell::Exit)
+                && (maze.is_passable(current, neighbor) || neighbor == exit)
             {
                 sender
                     .send(PathfindingResult {
@@ -114,7 +117,7 @@ impl MazeGenerationAlgorithm for Backtracking {
         height: usize,
         entrance: Point,
     ) -> Option<Maze> {
-        let mut maze = Maze::new(width, height, maze_type);
+        let mut maze = Maze::new(width, height, maze_type, None);
         let mut rng = rand::thread_rng();
         let mut visited = HashSet::new();
 
@@ -127,7 +130,7 @@ impl MazeGenerationAlgorithm for Backtracking {
             visited.insert(current);
             maze.mark_cell_as_path(current);
 
-            let mut directions = MOVEMENTS_X2.to_vec();
+            let mut directions = Movements::directions_doubled().to_vec();
             directions.shuffle(rng);
 
             for (dx, dy) in directions {

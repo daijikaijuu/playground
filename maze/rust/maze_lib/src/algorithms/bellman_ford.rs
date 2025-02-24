@@ -1,8 +1,8 @@
 use std::{collections::HashMap, sync::mpsc::Sender};
 
-use crate::{algorithms::MOVEMENTS, Maze};
+use crate::Maze;
 
-use super::{PathfindingAlgorithm, PathfindingResult, Point};
+use super::{Movements, PathfindingAlgorithm, PathfindingResult, Point};
 
 #[derive(Default)]
 pub struct BellmanFord;
@@ -97,7 +97,7 @@ impl PathfindingAlgorithm for BellmanFord {
                 for x in 0..maze.width {
                     let current = Point { x, y };
 
-                    for (dx, dy) in &MOVEMENTS {
+                    for (dx, dy) in &Movements::directions() {
                         let neighbor = Point {
                             x: (x as i32 + dx) as usize,
                             y: (y as i32 + dy) as usize,
@@ -134,7 +134,7 @@ impl PathfindingAlgorithm for BellmanFord {
             for x in 0..maze.width {
                 let current = Point { x, y };
 
-                for (dx, dy) in &MOVEMENTS {
+                for (dx, dy) in &Movements::directions() {
                     let neighbor = Point {
                         x: (current.x as i32 + dx) as usize,
                         y: (current.y as i32 + dy) as usize,

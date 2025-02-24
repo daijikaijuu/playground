@@ -1,7 +1,7 @@
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub enum ThickMazeCellType {
-    Wall,
     #[default]
+    Wall,
     Path,
     Entrance,
     Exit,

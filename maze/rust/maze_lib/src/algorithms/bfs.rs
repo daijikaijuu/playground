@@ -3,7 +3,7 @@ use std::{
     sync::mpsc::Sender,
 };
 
-use super::{Algorithm, PathfindingAlgorithm, PathfindingResult, Point, MOVEMENTS};
+use super::{Algorithm, Movements, PathfindingAlgorithm, PathfindingResult, Point};
 
 #[derive(Default)]
 pub struct BFS;
@@ -68,7 +68,7 @@ impl PathfindingAlgorithm for BFS {
                 break;
             }
 
-            for (dx, dy) in &MOVEMENTS {
+            for (dx, dy) in &Movements::directions() {
                 let neighbor = Point {
                     x: (current.x as i32 + dx) as usize,
                     y: (current.y as i32 + dy) as usize,

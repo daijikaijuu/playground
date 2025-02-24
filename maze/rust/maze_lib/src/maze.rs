@@ -117,7 +117,7 @@ impl Maze {
     }
 
     pub fn get_cell(&self, point: Point) -> MazeCell {
-        self.cells[self.get_index(point.x, point.y)].clone()
+        self.cells[self.get_index(point.x, point.y)]
     }
 
     pub fn set_cell(&mut self, x: usize, y: usize, value: MazeCell) {

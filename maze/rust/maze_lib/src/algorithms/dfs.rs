@@ -4,8 +4,8 @@ use std::{collections::HashSet, sync::mpsc::Sender};
 use crate::{maze::Maze, MazeCell, MazeType, ThickMazeCell, ThickMazeCellType};
 
 use super::{
-    Algorithm, MazeGenerationAlgorithm, PathfindingAlgorithm, PathfindingResult, PathfindingStats,
-    Point, MOVEMENTS, MOVEMENTS_X2,
+    Algorithm, MazeGenerationAlgorithm, Movements, PathfindingAlgorithm, PathfindingResult,
+    PathfindingStats, Point,
 };
 
 #[derive(Default, Copy, Clone)]
@@ -36,7 +36,7 @@ impl DFS {
             return true;
         }
 
-        for (dx, dy) in MOVEMENTS {
+        for (dx, dy) in &Movements::directions() {
             let neighbor = Point {
                 x: (current.x as i32 + dx) as usize,
                 y: (current.y as i32 + dy) as usize,
@@ -81,7 +81,7 @@ impl DFS {
     }
 
     fn depth_first_maze_generation(current: Point, maze: &mut Maze, rng: &mut ThreadRng) -> bool {
-        let mut shuffled_directions = MOVEMENTS_X2.to_vec();
+        let mut shuffled_directions = Movements::directions_doubled().to_vec();
         shuffled_directions.shuffle(rng);
         for &(dx, dy) in &shuffled_directions {
             let new_x = current.x as i32 + dx;

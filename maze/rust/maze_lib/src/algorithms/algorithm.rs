@@ -1,3 +1,4 @@
+use super::Backtracking;
 use super::MazeGenerationAlgorithm;
 use super::DFS;
 use enum_iterator::Sequence;
@@ -26,12 +27,13 @@ impl Algorithm {
     ];
 
     pub fn maze_generation_algorithms() -> Vec<Algorithm> {
-        vec![Algorithm::DFS]
+        vec![Algorithm::DFS, Algorithm::Backtracking]
     }
 
     pub fn pathfinding_algorithms() -> Vec<Algorithm> {
         vec![
             Algorithm::AStar,
+            Algorithm::Backtracking,
             Algorithm::BellmanFord,
             Algorithm::BFS,
             Algorithm::DFS,
@@ -46,7 +48,7 @@ impl Algorithm {
     pub fn get_maze_generator(&self) -> Option<Box<dyn MazeGenerationAlgorithm>> {
         match self {
             Algorithm::DFS => Some(Box::new(DFS::default())),
-            // Algorithm::Backtracking => Some(Box::new(Backtracking::default())),
+            Algorithm::Backtracking => Some(Box::new(Backtracking::default())),
             // Algorithm::WFC => Some(Box::new(WFC::default())),
             _ => None,
         }
@@ -70,6 +72,3 @@ impl std::fmt::Display for Algorithm {
         )
     }
 }
-
-pub const MOVEMENTS: [(i32, i32); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
-pub const MOVEMENTS_X2: [(i32, i32); 4] = [(0, 2), (2, 0), (0, -2), (-2, 0)];
