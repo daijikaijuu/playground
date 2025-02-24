@@ -74,4 +74,24 @@ impl SlimWallsCell {
             self.walls &= !Self::BOTTOM_WALL;
         }
     }
+
+    pub fn set_wall_by_direction(&mut self, direction: (i32, i32), has_wall: bool) {
+        match direction {
+            (1, 0) => self.set_right_wall(has_wall),
+            (0, 1) => self.set_bottom_wall(has_wall),
+            (-1, 0) => self.set_left_wall(has_wall),
+            (0, -1) => self.set_top_wall(has_wall),
+            _ => unreachable!(),
+        };
+    }
+
+    pub fn has_wall_in_direction(&self, direction: (i32, i32)) -> bool {
+        match direction {
+            (1, 0) => self.has_right_wall(),
+            (0, 1) => self.has_bottom_wall(),
+            (-1, 0) => self.has_left_wall(),
+            (0, -1) => self.has_right_wall(),
+            _ => unreachable!(),
+        }
+    }
 }

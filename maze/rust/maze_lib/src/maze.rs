@@ -2,6 +2,7 @@ use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::fmt;
 
+use crate::algorithms::Movements;
 use crate::algorithms::Point;
 use crate::MazeCell;
 use crate::SlimWallsCell;
@@ -9,7 +10,7 @@ use crate::SlimWallsCellType;
 use crate::ThickMazeCell;
 use crate::ThickMazeCellType;
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, PartialEq, Default, Debug)]
 pub enum MazeType {
     #[default]
     Thick,
@@ -176,14 +177,50 @@ impl Maze {
     }
 
     pub fn is_not_passable(&self, current: Point, next: Point) -> bool {
-        match self.get_cell(next) {
-            MazeCell::Thick(thick_maze_cell) => thick_maze_cell.cell == ThickMazeCellType::Wall,
-            MazeCell::Slim(slim_walls_cell) => todo!(),
+        let mut result = true;
+        let direction = Movements::calculate_direction(current, next);
+        let opposite_direction = Movements::get_opposite_direction(direction.0, direction.1);
+
+        if let MazeCell::Slim(c) = self.get_cell(current) {
+            result &= c.has_wall_in_direction(direction)
         }
+
+        match self.get_cell(next) {
+            MazeCell::Thick(c) => result = c.cell == ThickMazeCellType::Wall,
+            MazeCell::Slim(c) => result &= c.has_wall_in_direction(opposite_direction),
+        };
+
+        result
     }
 
     pub fn is_passable(&self, current: Point, next: Point) -> bool {
         !self.is_not_passable(current, next)
+    }
+
+    pub fn remove_walls_between_cells(&mut self, current: Point, neighbor: Point) {
+        assert_ne!(
+            self.maze_type,
+            MazeType::Thick,
+            "This functions should never be called in thick walls maze!"
+        );
+
+        let direction = Movements::calculate_direction(current, neighbor);
+        let opposite_direction = Movements::get_opposite_direction(direction.0, direction.1);
+        let current_idx = self.get_index(current.x, current.y);
+        let neighbor_idx = self.get_index(neighbor.x, neighbor.y);
+
+        if let Some(cell) = self.cells.get_mut(current_idx) {
+            match cell {
+                MazeCell::Slim(c) => c.set_wall_by_direction(direction, false),
+                _ => unreachable!(),
+            }
+        }
+        if let Some(cell) = self.cells.get_mut(neighbor_idx) {
+            match cell {
+                MazeCell::Slim(c) => c.set_wall_by_direction(opposite_direction, false),
+                _ => unreachable!(),
+            }
+        }
     }
 
     pub fn get_random_boundary_point(&self, rng: &mut ThreadRng) -> Point {

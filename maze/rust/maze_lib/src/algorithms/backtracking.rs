@@ -130,7 +130,10 @@ impl MazeGenerationAlgorithm for Backtracking {
             visited.insert(current);
             maze.mark_cell_as_path(current);
 
-            let mut directions = Movements::directions_doubled().to_vec();
+            let mut directions = match maze.maze_type {
+                MazeType::Thick => Movements::directions_doubled().to_vec(),
+                MazeType::Slim => Movements::directions().to_vec(),
+            };
             directions.shuffle(rng);
 
             for (dx, dy) in directions {
@@ -142,13 +145,19 @@ impl MazeGenerationAlgorithm for Backtracking {
                         x: new_x as usize,
                         y: new_y as usize,
                     };
+                    let opposite = Movements::get_opposite_direction(new_x, new_y);
 
                     if !visited.contains(&next) {
-                        // Carve path between current and next
-                        maze.mark_cell_as_path(Point {
-                            x: (current.x + next.x) / 2,
-                            y: (current.y + next.y) / 2,
-                        });
+                        match maze.maze_type {
+                            MazeType::Thick => {
+                                // Carve path between current and next
+                                maze.mark_cell_as_path(Point {
+                                    x: (current.x + next.x) / 2,
+                                    y: (current.y + next.y) / 2,
+                                });
+                            }
+                            MazeType::Slim => {}
+                        }
                         generate_maze_recursive(next, maze, visited, rng);
                     }
                 }
