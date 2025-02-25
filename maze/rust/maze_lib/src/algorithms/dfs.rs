@@ -144,7 +144,15 @@ impl MazeGenerationAlgorithm for DFS {
         height: usize,
         entrance: Point,
     ) -> Option<Maze> {
-        let mut maze = Maze::new(width, height, maze_type, Some(CellType::Wall));
+        let mut maze = Maze::new(
+            width,
+            height,
+            maze_type,
+            Some(match maze_type {
+                MazeType::Thick => CellType::Wall,
+                MazeType::Slim => CellType::Path,
+            }),
+        );
         let mut rng = rand::thread_rng();
 
         maze.mark_cell_as_path(entrance);

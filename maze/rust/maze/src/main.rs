@@ -52,11 +52,12 @@ impl MainWindow {
     }
 
     fn view(&self) -> Element<Message> {
-        // let maze_type_selector_list = pick_list(
-        //     MazeCell::cell_types(),
-        //     self.selected_maze_type,
-        //     Message::MazeTypeSelected,
-        // );
+        let maze_type_selector_list = pick_list(
+            MazeType::cell_types(),
+            self.selected_maze_type,
+            Message::MazeTypeSelected,
+        )
+        .placeholder("Choose a maze type");
 
         let algorithm_selector_list = pick_list(
             Algorithm::pathfinding_algorithms(),
@@ -81,6 +82,7 @@ impl MainWindow {
 
         let top_controls = row![
             text("Maze crawler").size(20),
+            maze_type_selector_list,
             algorithm_selector_list,
             generator_selector_list,
             button_controls,

@@ -8,11 +8,30 @@ use crate::CellType;
 use crate::MazeCell;
 use crate::SlimWallsCellType;
 
-#[derive(Clone, Copy, PartialEq, Default, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 pub enum MazeType {
     #[default]
     Thick,
     Slim,
+}
+
+impl MazeType {
+    pub fn cell_types() -> Vec<MazeType> {
+        vec![MazeType::Thick, MazeType::Slim]
+    }
+}
+
+impl std::fmt::Display for MazeType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                MazeType::Thick => "Thick",
+                MazeType::Slim => "Slim",
+            }
+        )
+    }
 }
 
 #[derive(Clone, Default)]

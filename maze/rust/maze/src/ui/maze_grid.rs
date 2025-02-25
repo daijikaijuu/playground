@@ -14,7 +14,7 @@ use iced::{
     Color, Element, Length, Point, Rectangle, Renderer, Size, Theme,
 };
 
-use maze_lib::{algorithms::*, CellType, Maze, MazeCell, MazeType};
+use maze_lib::{algorithms::*, CellType, Maze, MazeCell, MazeType, SlimWallsCellType};
 
 #[derive(Debug)]
 pub struct MazeGrid {
@@ -171,7 +171,7 @@ impl MazeGrid {
         if let Some(mut generator) = self.selected_generator.get_maze_generator() {
             self.maze = generator
                 .generate(
-                    maze_lib::MazeType::Thick,
+                    self.selected_maze_type,
                     self.maze.width,
                     self.maze.height,
                     maze_lib::algorithms::Point { x: 1, y: 1 },
@@ -210,21 +210,20 @@ impl canvas::Program<Message> for MazeGrid {
                     let cell = self
                         .maze
                         .get_cell(maze_lib::algorithms::Point { x: row, y: col });
-
+                    frame.fill_rectangle(
+                        starting_point,
+                        size,
+                        match cell.get_type() {
+                            CellType::Wall => Color::from_rgb8(100, 100, 100),
+                            CellType::Path => Color::from_rgb8(255, 255, 255),
+                            CellType::Entrance => Color::from_rgb8(0, 0, 255),
+                            CellType::Exit => Color::from_rgb8(255, 0, 0),
+                            CellType::Visited => Color::from_rgb8(0, 0, 100),
+                            CellType::FinalPath => Color::from_rgb8(100, 155, 255),
+                        },
+                    );
                     match self.maze.maze_type {
                         MazeType::Thick => {
-                            frame.fill_rectangle(
-                                starting_point,
-                                size,
-                                match cell.get_type() {
-                                    CellType::Wall => Color::from_rgb8(100, 100, 100),
-                                    CellType::Path => Color::from_rgb8(255, 255, 255),
-                                    CellType::Entrance => Color::from_rgb8(0, 0, 255),
-                                    CellType::Exit => Color::from_rgb8(255, 0, 0),
-                                    CellType::Visited => Color::from_rgb8(0, 0, 100),
-                                    CellType::FinalPath => Color::from_rgb8(100, 155, 255),
-                                },
-                            );
                             frame.stroke(
                                 &Path::rectangle(starting_point, size),
                                 Stroke::default()
@@ -232,7 +231,70 @@ impl canvas::Program<Message> for MazeGrid {
                                     .with_color(Color::from_rgb8(55, 55, 55)),
                             );
                         }
-                        MazeType::Slim => todo!(),
+                        MazeType::Slim => {
+                            if cell.has_right_wall() {
+                                frame.stroke(
+                                    &Path::line(
+                                        Point::new(
+                                            (col + 1) as f32 * cell_size,
+                                            row as f32 * cell_size,
+                                        ),
+                                        Point::new(
+                                            (col + 1) as f32 * cell_size,
+                                            (row + 1) as f32 * cell_size,
+                                        ),
+                                    ),
+                                    Stroke::default()
+                                        .with_width(1.0)
+                                        .with_color(Color::from_rgb8(0, 0, 0)),
+                                );
+                            }
+                            if cell.has_left_wall() {
+                                frame.stroke(
+                                    &Path::line(
+                                        Point::new(col as f32 * cell_size, row as f32 * cell_size),
+                                        Point::new(
+                                            col as f32 * cell_size,
+                                            (row + 1) as f32 * cell_size,
+                                        ),
+                                    ),
+                                    Stroke::default()
+                                        .with_width(1.0)
+                                        .with_color(Color::from_rgb8(0, 0, 0)),
+                                );
+                            }
+                            if cell.has_top_wall() {
+                                frame.stroke(
+                                    &Path::line(
+                                        Point::new(col as f32 * cell_size, row as f32 * cell_size),
+                                        Point::new(
+                                            (col + 1) as f32 * cell_size,
+                                            row as f32 * cell_size,
+                                        ),
+                                    ),
+                                    Stroke::default()
+                                        .with_width(1.0)
+                                        .with_color(Color::from_rgb8(0, 0, 0)),
+                                );
+                            }
+                            if cell.has_bottom_wall() {
+                                frame.stroke(
+                                    &Path::line(
+                                        Point::new(
+                                            col as f32 * cell_size,
+                                            (row + 1) as f32 * cell_size,
+                                        ),
+                                        Point::new(
+                                            (col + 1) as f32 * cell_size,
+                                            (row + 1) as f32 * cell_size,
+                                        ),
+                                    ),
+                                    Stroke::default()
+                                        .with_width(1.0)
+                                        .with_color(Color::from_rgb8(0, 0, 0)),
+                                );
+                            }
+                        }
                     }
                 }
             }
