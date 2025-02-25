@@ -81,7 +81,12 @@ impl DFS {
     }
 
     fn depth_first_maze_generation(current: Point, maze: &mut Maze, rng: &mut ThreadRng) -> bool {
-        let mut shuffled_directions = Movements::directions_doubled().to_vec();
+        let mut shuffled_directions = match maze.maze_type {
+            MazeType::Thick => Movements::directions_doubled(),
+            MazeType::Slim => Movements::directions(),
+        }
+        .to_vec();
+
         shuffled_directions.shuffle(rng);
         for &(dx, dy) in &shuffled_directions {
             let new_x = current.x as i32 + dx;
@@ -94,11 +99,16 @@ impl DFS {
                 };
 
                 if maze.is_not_passable(current, neighbor) {
-                    maze.mark_cell_as_path(neighbor);
-                    maze.mark_cell_as_path(Point {
-                        x: (current.x + neighbor.x) / 2,
-                        y: (current.y + neighbor.y) / 2,
-                    });
+                    match maze.maze_type {
+                        MazeType::Thick => {
+                            maze.mark_cell_as_path(neighbor);
+                            maze.mark_cell_as_path(Point {
+                                x: (current.x + neighbor.x) / 2,
+                                y: (current.y + neighbor.y) / 2,
+                            });
+                        }
+                        MazeType::Slim => maze.remove_walls_between_cells(current, neighbor),
+                    }
 
                     DFS::depth_first_maze_generation(neighbor, maze, rng);
                 }
