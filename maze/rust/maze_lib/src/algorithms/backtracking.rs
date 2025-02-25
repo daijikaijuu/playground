@@ -3,7 +3,7 @@ use std::sync::mpsc::Sender;
 
 use rand::seq::SliceRandom;
 
-use crate::{maze::Maze, MazeType};
+use crate::{maze::Maze, CellType, MazeType};
 
 use super::{
     pathfinding::PathfindingAlgorithm, Algorithm, MazeGenerationAlgorithm, Movements,
@@ -117,7 +117,7 @@ impl MazeGenerationAlgorithm for Backtracking {
         height: usize,
         entrance: Point,
     ) -> Option<Maze> {
-        let mut maze = Maze::new(width, height, maze_type, None);
+        let mut maze = Maze::new(width, height, maze_type, Some(CellType::Wall));
         let mut rng = rand::thread_rng();
         let mut visited = HashSet::new();
 
@@ -145,18 +145,16 @@ impl MazeGenerationAlgorithm for Backtracking {
                         x: new_x as usize,
                         y: new_y as usize,
                     };
-                    let opposite = Movements::get_opposite_direction(new_x, new_y);
+                    //let opposite = Movements::get_opposite_direction(new_x, new_y);
 
                     if !visited.contains(&next) {
                         match maze.maze_type {
-                            MazeType::Thick => {
-                                // Carve path between current and next
-                                maze.mark_cell_as_path(Point {
-                                    x: (current.x + next.x) / 2,
-                                    y: (current.y + next.y) / 2,
-                                });
-                            }
-                            MazeType::Slim => {}
+                            MazeType::Thick => maze.mark_cell_as_path(Point {
+                                x: (current.x + next.x) / 2,
+                                y: (current.y + next.y) / 2,
+                            }),
+
+                            MazeType::Slim => maze.remove_walls_between_cells(current, next),
                         }
                         generate_maze_recursive(next, maze, visited, rng);
                     }

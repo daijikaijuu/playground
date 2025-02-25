@@ -4,25 +4,15 @@ use std::fmt;
 
 use crate::algorithms::Movements;
 use crate::algorithms::Point;
+use crate::CellType;
 use crate::MazeCell;
-use crate::SlimWallsCell;
 use crate::SlimWallsCellType;
-use crate::ThickMazeCell;
-use crate::ThickMazeCellType;
 
 #[derive(Clone, Copy, PartialEq, Default, Debug)]
 pub enum MazeType {
     #[default]
     Thick,
     Slim,
-}
-
-enum CellMarkType {
-    Visited,
-    Path,
-    FinalPath,
-    Entrance,
-    Exit,
 }
 
 #[derive(Clone, Default)]
@@ -39,17 +29,11 @@ impl Maze {
         width: usize,
         height: usize,
         maze_type: MazeType,
-        default_cell_type: Option<MazeCell>,
+        default_cell_type: Option<CellType>,
     ) -> Self {
-        let default_cell_type = default_cell_type.unwrap_or_else(|| match maze_type {
-            MazeType::Thick => MazeCell::Thick(ThickMazeCell::default()),
-            MazeType::Slim => MazeCell::Slim(SlimWallsCell::default()),
-        });
+        let default_cell_type = default_cell_type.unwrap_or(CellType::Path);
 
-        let cells = match maze_type {
-            MazeType::Thick => vec![default_cell_type; width * height],
-            MazeType::Slim => vec![default_cell_type; width * height],
-        };
+        let cells = vec![MazeCell::new(default_cell_type); width * height];
         let original_cells = cells.clone();
 
         Maze {
@@ -126,71 +110,51 @@ impl Maze {
         self.cells[index] = value;
     }
 
-    fn mark_cell(&mut self, point: Point, cell_type: CellMarkType) {
+    fn mark_cell(&mut self, point: Point, cell_type: CellType) {
         let index = self.get_index(point.x, point.y);
         if let Some(cell) = self.cells.get_mut(index) {
-            match cell {
-                MazeCell::Thick(ref mut thick_walls_cell) => {
-                    thick_walls_cell.cell = match cell_type {
-                        CellMarkType::Visited => ThickMazeCellType::Visited,
-                        CellMarkType::Path => ThickMazeCellType::Path,
-                        CellMarkType::FinalPath => ThickMazeCellType::FinalPath,
-                        CellMarkType::Entrance => ThickMazeCellType::Entrance,
-                        CellMarkType::Exit => ThickMazeCellType::Exit,
-                    };
-                }
-                MazeCell::Slim(ref mut slim_walls_cell) => {
-                    slim_walls_cell.cell = match cell_type {
-                        CellMarkType::Visited => SlimWallsCellType::Visited,
-                        CellMarkType::Path => SlimWallsCellType::Path,
-                        CellMarkType::FinalPath => SlimWallsCellType::FinalPath,
-                        CellMarkType::Entrance => SlimWallsCellType::Entrance,
-                        CellMarkType::Exit => SlimWallsCellType::Exit,
-                    };
-                }
-            }
+            cell.mark_cell_as(cell_type);
         }
     }
 
     pub fn mark_cell_as_visited(&mut self, point: Point) {
-        self.mark_cell(point, CellMarkType::Visited);
+        self.mark_cell(point, CellType::Visited);
     }
 
     pub fn mark_cell_as_path(&mut self, point: Point) {
-        self.mark_cell(point, CellMarkType::Path);
+        self.mark_cell(point, CellType::Path);
     }
 
     pub fn mark_cell_as_final_path(&mut self, point: Point) {
-        self.mark_cell(point, CellMarkType::FinalPath);
+        self.mark_cell(point, CellType::FinalPath);
     }
 
     pub fn mark_cell_as_entrance(&mut self, point: Point) {
-        self.mark_cell(point, CellMarkType::Entrance);
+        self.mark_cell(point, CellType::Entrance);
     }
 
     pub fn mark_cell_as_exit(&mut self, point: Point) {
-        self.mark_cell(point, CellMarkType::Exit);
+        self.mark_cell(point, CellType::Exit);
     }
 
     pub fn is_valid_coord(&self, x: i32, y: i32) -> bool {
-        x >= 0 && y >= 0 && x < self.width as i32 && y < self.height as i32
+        x >= 0 && y >= 0 && x < (self.width - 1) as i32 && y < (self.height - 1) as i32
     }
 
     pub fn is_not_passable(&self, current: Point, next: Point) -> bool {
-        let mut result = true;
-        let direction = Movements::calculate_direction(current, next);
-        let opposite_direction = Movements::get_opposite_direction(direction.0, direction.1);
+        match self.maze_type {
+            MazeType::Thick => self.get_cell(next).get_type() == CellType::Wall,
+            MazeType::Slim => {
+                let direction = Movements::calculate_direction(current, next);
+                let opposite_direction =
+                    Movements::get_opposite_direction(direction.0, direction.1);
 
-        if let MazeCell::Slim(c) = self.get_cell(current) {
-            result &= c.has_wall_in_direction(direction)
+                self.get_cell(current).has_wall_in_direction(direction)
+                    && self
+                        .get_cell(next)
+                        .has_wall_in_direction(opposite_direction)
+            }
         }
-
-        match self.get_cell(next) {
-            MazeCell::Thick(c) => result = c.cell == ThickMazeCellType::Wall,
-            MazeCell::Slim(c) => result &= c.has_wall_in_direction(opposite_direction),
-        };
-
-        result
     }
 
     pub fn is_passable(&self, current: Point, next: Point) -> bool {
@@ -210,16 +174,10 @@ impl Maze {
         let neighbor_idx = self.get_index(neighbor.x, neighbor.y);
 
         if let Some(cell) = self.cells.get_mut(current_idx) {
-            match cell {
-                MazeCell::Slim(c) => c.set_wall_by_direction(direction, false),
-                _ => unreachable!(),
-            }
+            cell.set_wall_by_direction(direction, false);
         }
         if let Some(cell) = self.cells.get_mut(neighbor_idx) {
-            match cell {
-                MazeCell::Slim(c) => c.set_wall_by_direction(opposite_direction, false),
-                _ => unreachable!(),
-            }
+            cell.set_wall_by_direction(opposite_direction, false);
         }
     }
 
@@ -242,16 +200,10 @@ impl Maze {
             (x.saturating_sub(1), y),
         ];
 
-        if adjacent_points
-            .iter()
-            .any(|&(cx, cy)| match self.cells.get(self.get_index(cx, cy)) {
-                Some(cell) => match cell {
-                    MazeCell::Thick(thick_cell) => thick_cell.cell == ThickMazeCellType::Path,
-                    MazeCell::Slim(_) => false, // Assuming SlimWallsCell does not have a path
-                },
-                None => false,
-            })
-        {
+        if adjacent_points.iter().any(|&(cx, cy)| {
+            self.is_valid_coord(cx as i32, cy as i32)
+                && self.get_cell(Point { x: cx, y: cy }).get_type() == CellType::Path
+        }) {
             Point { x, y }
         } else {
             self.get_random_boundary_point(rng)
@@ -263,22 +215,13 @@ impl fmt::Debug for Maze {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for y in 0..self.height {
             for x in 0..self.width {
-                match self.get_cell(Point { x, y }) {
-                    MazeCell::Thick(thick_cell) => match thick_cell.cell {
-                        ThickMazeCellType::Wall => write!(f, "██")?,
-                        ThickMazeCellType::Path => write!(f, "  ")?,
-                        ThickMazeCellType::Entrance => write!(f, " >")?,
-                        ThickMazeCellType::Exit => write!(f, " E")?,
-                        ThickMazeCellType::Visited => write!(f, " v")?,
-                        ThickMazeCellType::FinalPath => write!(f, " F")?,
-                    },
-                    MazeCell::Slim(slim_cell) => match slim_cell.cell {
-                        SlimWallsCellType::Path => write!(f, "  ")?,
-                        SlimWallsCellType::Entrance => write!(f, " >")?,
-                        SlimWallsCellType::Exit => write!(f, " E")?,
-                        SlimWallsCellType::Visited => write!(f, " v")?,
-                        SlimWallsCellType::FinalPath => write!(f, " F")?,
-                    },
+                match self.get_cell(Point { x, y }).get_type() {
+                    CellType::Wall => write!(f, "██")?,
+                    CellType::Path => write!(f, "  ")?,
+                    CellType::Entrance => write!(f, " >")?,
+                    CellType::Exit => write!(f, " E")?,
+                    CellType::Visited => write!(f, " v")?,
+                    CellType::FinalPath => write!(f, " F")?,
                 }
             }
             writeln!(f)?;

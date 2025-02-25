@@ -1,6 +1,6 @@
 use maze_lib::{
     algorithms::{PathfindingAnimationState, PathfindingState, Point},
-    Maze, MazeCell, SlimWallsCellType, ThickMazeCellType,
+    CellType, Maze,
 };
 use ratatui::{
     style::{Style, Stylize},
@@ -55,22 +55,13 @@ impl Widget for MazeGrid {
 
         for col in 0..cols {
             for row in 0..rows {
-                let (value, color) = match self.maze.get_cell(Point { x: col, y: row }) {
-                    MazeCell::Thick(thick_cell) => match thick_cell.cell {
-                        ThickMazeCellType::Wall => ("██", Style::default().on_black().white()),
-                        ThickMazeCellType::Path => ("  ", Style::default().on_black()),
-                        ThickMazeCellType::Entrance => ("░░", Style::default().blue()),
-                        ThickMazeCellType::Exit => ("╒╕", Style::default().red()),
-                        ThickMazeCellType::Visited => ("  ", Style::default().on_light_yellow()),
-                        ThickMazeCellType::FinalPath => ("  ", Style::default().on_light_green()),
-                    },
-                    MazeCell::Slim(slim_cell) => match slim_cell.cell {
-                        SlimWallsCellType::Path => ("  ", Style::default().on_black()),
-                        SlimWallsCellType::Entrance => ("░░", Style::default().blue()),
-                        SlimWallsCellType::Exit => ("╒╕", Style::default().red()),
-                        SlimWallsCellType::Visited => ("  ", Style::default().on_light_yellow()),
-                        SlimWallsCellType::FinalPath => ("  ", Style::default().on_light_green()),
-                    },
+                let (value, color) = match self.maze.get_cell(Point { x: col, y: row }).get_type() {
+                    CellType::Wall => ("██", Style::default().on_black().white()),
+                    CellType::Path => ("  ", Style::default().on_black()),
+                    CellType::Entrance => ("░░", Style::default().blue()),
+                    CellType::Exit => ("╒╕", Style::default().red()),
+                    CellType::Visited => ("  ", Style::default().on_light_yellow()),
+                    CellType::FinalPath => ("  ", Style::default().on_light_green()),
                 };
                 buf.set_string(
                     area.left() + 1 + (col * 2) as u16,

@@ -14,7 +14,7 @@ use iced::{
     Color, Element, Length, Point, Rectangle, Renderer, Size, Theme,
 };
 
-use maze_lib::{algorithms::*, Maze, MazeCell, MazeType, SlimWallsCellType, ThickMazeCellType};
+use maze_lib::{algorithms::*, CellType, Maze, MazeCell, MazeType};
 
 #[derive(Debug)]
 pub struct MazeGrid {
@@ -207,36 +207,33 @@ impl canvas::Program<Message> for MazeGrid {
                 for row in 0..rows {
                     let starting_point = Point::new(col as f32 * cell_size, row as f32 * cell_size);
                     let size = Size::new(cell_size, cell_size);
-                    frame.fill_rectangle(
-                        starting_point,
-                        size,
-                        match self
-                            .maze
-                            .get_cell(maze_lib::algorithms::Point { x: row, y: col })
-                        {
-                            MazeCell::Thick(thick_cell) => match thick_cell.cell {
-                                ThickMazeCellType::Wall => Color::from_rgb8(100, 100, 100),
-                                ThickMazeCellType::Path => Color::from_rgb8(255, 255, 255),
-                                ThickMazeCellType::Entrance => Color::from_rgb8(0, 0, 255),
-                                ThickMazeCellType::Exit => Color::from_rgb8(255, 0, 0),
-                                ThickMazeCellType::Visited => Color::from_rgb8(0, 0, 100),
-                                ThickMazeCellType::FinalPath => Color::from_rgb8(100, 155, 255),
-                            },
-                            MazeCell::Slim(slim_cell) => match slim_cell.cell {
-                                SlimWallsCellType::Path => Color::from_rgb8(255, 255, 255),
-                                SlimWallsCellType::Entrance => Color::from_rgb8(0, 0, 255),
-                                SlimWallsCellType::Exit => Color::from_rgb8(255, 0, 0),
-                                SlimWallsCellType::Visited => Color::from_rgb8(0, 0, 100),
-                                SlimWallsCellType::FinalPath => Color::from_rgb8(100, 155, 255),
-                            },
-                        },
-                    );
-                    frame.stroke(
-                        &Path::rectangle(starting_point, size),
-                        Stroke::default()
-                            .with_width(1.0)
-                            .with_color(Color::from_rgb8(55, 55, 55)),
-                    )
+                    let cell = self
+                        .maze
+                        .get_cell(maze_lib::algorithms::Point { x: row, y: col });
+
+                    match self.maze.maze_type {
+                        MazeType::Thick => {
+                            frame.fill_rectangle(
+                                starting_point,
+                                size,
+                                match cell.get_type() {
+                                    CellType::Wall => Color::from_rgb8(100, 100, 100),
+                                    CellType::Path => Color::from_rgb8(255, 255, 255),
+                                    CellType::Entrance => Color::from_rgb8(0, 0, 255),
+                                    CellType::Exit => Color::from_rgb8(255, 0, 0),
+                                    CellType::Visited => Color::from_rgb8(0, 0, 100),
+                                    CellType::FinalPath => Color::from_rgb8(100, 155, 255),
+                                },
+                            );
+                            frame.stroke(
+                                &Path::rectangle(starting_point, size),
+                                Stroke::default()
+                                    .with_width(1.0)
+                                    .with_color(Color::from_rgb8(55, 55, 55)),
+                            );
+                        }
+                        MazeType::Slim => todo!(),
+                    }
                 }
             }
 

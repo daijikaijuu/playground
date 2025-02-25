@@ -1,7 +1,7 @@
 use rand::{rngs::ThreadRng, seq::SliceRandom};
 use std::{collections::HashSet, sync::mpsc::Sender};
 
-use crate::{maze::Maze, MazeCell, MazeType, ThickMazeCell, ThickMazeCellType};
+use crate::{maze::Maze, CellType, MazeType};
 
 use super::{
     Algorithm, MazeGenerationAlgorithm, Movements, PathfindingAlgorithm, PathfindingResult,
@@ -134,14 +134,7 @@ impl MazeGenerationAlgorithm for DFS {
         height: usize,
         entrance: Point,
     ) -> Option<Maze> {
-        let mut maze = Maze::new(
-            width,
-            height,
-            maze_type,
-            Some(MazeCell::Thick(ThickMazeCell {
-                cell: ThickMazeCellType::Wall,
-            })),
-        );
+        let mut maze = Maze::new(width, height, maze_type, Some(CellType::Wall));
         let mut rng = rand::thread_rng();
 
         maze.mark_cell_as_path(entrance);
