@@ -112,8 +112,9 @@ impl MazeGrid {
     }
 
     pub fn start(&mut self) {
-        // Don't start pathfinding if the selected algorithm is not a pathfinding algorithm
-        if !self.selected_algorithm.is_pathfinding_algorithm() {
+        // Don't start pathfinding if the selected algorithm is not a pathfinding algorithm,
+        // or animation queue is not empty
+        if !self.selected_algorithm.is_pathfinding_algorithm() || !self.animation_queue.is_empty() {
             return;
         }
 
@@ -135,10 +136,10 @@ impl MazeGrid {
                 let mut astar = AStar::new();
                 astar.find_path(&mut maze, &sender);
             }
-            // Algorithm::Backtracking => {
-            //     let mut backtracking = Backtracking::new();
-            //     backtracking.find_path(&mut maze, &sender);
-            // }
+            Algorithm::Backtracking => {
+                let mut backtracking = Backtracking::new();
+                backtracking.find_path(&mut maze, &sender);
+            }
             Algorithm::BellmanFord => {
                 let mut bellman_ford = BellmanFord;
                 bellman_ford.find_path(&mut maze, &sender);

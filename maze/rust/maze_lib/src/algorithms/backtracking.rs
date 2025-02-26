@@ -127,6 +127,7 @@ impl MazeGenerationAlgorithm for Backtracking {
             maze: &mut Maze,
             visited: &mut HashSet<Point>,
             rng: &mut impl rand::Rng,
+            sender: Option<&Sender<PathfindingResult>>,
         ) {
             visited.insert(current);
             maze.mark_cell_as_path(current);
@@ -157,18 +158,33 @@ impl MazeGenerationAlgorithm for Backtracking {
 
                             MazeType::Slim => maze.remove_walls_between_cells(current, next),
                         }
-                        generate_maze_recursive(next, maze, visited, rng);
+                        if let Some(s) = sender {
+                            s.send(PathfindingResult {
+                                stats: None,
+                                maze: maze.clone(),
+                            })
+                            .unwrap();
+                        }
+                        generate_maze_recursive(next, maze, visited, rng, sender);
                     }
                 }
             }
         }
 
-        generate_maze_recursive(entrance, &mut maze, &mut visited, &mut rng);
+        generate_maze_recursive(entrance, &mut maze, &mut visited, &mut rng, sender);
 
         // Set entrance and exit
         maze.mark_cell_as_entrance(entrance);
         let exit_point = maze.get_random_boundary_point(&mut rng);
         maze.mark_cell_as_exit(exit_point);
+
+        if let Some(s) = sender {
+            s.send(PathfindingResult {
+                stats: None,
+                maze: maze.clone(),
+            })
+            .unwrap();
+        }
 
         maze.backup();
         Some(maze)
