@@ -80,7 +80,12 @@ impl DFS {
         false
     }
 
-    fn depth_first_maze_generation(current: Point, maze: &mut Maze, rng: &mut ThreadRng) -> bool {
+    fn depth_first_maze_generation(
+        current: Point,
+        maze: &mut Maze,
+        rng: &mut ThreadRng,
+        sender: Option<&Sender<PathfindingResult>>,
+    ) -> bool {
         let mut shuffled_directions = match maze.maze_type {
             MazeType::Thick => Movements::directions_doubled(),
             MazeType::Slim => Movements::directions(),
@@ -109,8 +114,14 @@ impl DFS {
                         }
                         MazeType::Slim => maze.remove_walls_between_cells(current, neighbor),
                     }
-
-                    DFS::depth_first_maze_generation(neighbor, maze, rng);
+                    if let Some(s) = sender {
+                        s.send(PathfindingResult {
+                            stats: None,
+                            maze: maze.clone(),
+                        })
+                        .unwrap();
+                    }
+                    DFS::depth_first_maze_generation(neighbor, maze, rng, sender);
                 }
             }
         }
@@ -143,6 +154,7 @@ impl MazeGenerationAlgorithm for DFS {
         width: usize,
         height: usize,
         entrance: Point,
+        sender: Option<&Sender<PathfindingResult>>,
     ) -> Option<Maze> {
         let mut maze = Maze::new(
             width,
@@ -156,13 +168,21 @@ impl MazeGenerationAlgorithm for DFS {
         let mut rng = rand::thread_rng();
 
         maze.mark_cell_as_path(entrance);
-        DFS::depth_first_maze_generation(entrance, &mut maze, &mut rng);
+        DFS::depth_first_maze_generation(entrance, &mut maze, &mut rng, sender);
 
         maze.mark_cell_as_entrance(entrance);
         let exit_point = maze.get_random_boundary_point(&mut rng);
         maze.mark_cell_as_exit(exit_point);
 
         maze.backup();
+
+        if let Some(s) = sender {
+            s.send(PathfindingResult {
+                stats: None,
+                maze: maze.clone(),
+            })
+            .unwrap();
+        }
 
         Some(maze)
     }

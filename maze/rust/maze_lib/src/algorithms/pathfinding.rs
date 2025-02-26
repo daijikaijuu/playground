@@ -17,14 +17,6 @@ pub enum PathfindingState {
     Finished,
 }
 
-#[derive(Debug, Copy, Clone, Default, PartialEq)]
-pub enum PathfindingAnimationState {
-    #[default]
-    NotRunning,
-    Running,
-    Paused,
-}
-
 pub struct PathfindingResult {
     pub stats: Option<PathfindingStats>,
     pub maze: Maze,

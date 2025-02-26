@@ -16,12 +16,14 @@ use iced::{
 
 use maze_lib::{algorithms::*, CellType, Maze, MazeCell, MazeType, SlimWallsCellType};
 
+use super::AnimationState;
+
 #[derive(Debug)]
 pub struct MazeGrid {
     maze: Maze,
     grid_cache: Cache,
     animation_queue: VecDeque<Maze>,
-    animation_state: PathfindingAnimationState,
+    animation_state: AnimationState,
     pub selected_algorithm: Algorithm,
     pub selected_generator: Algorithm,
     pub selected_maze_type: MazeType,
@@ -48,6 +50,7 @@ impl MazeGrid {
                 41,
                 41,
                 maze_lib::algorithms::Point { x: 1, y: 1 },
+                None,
             )
             .unwrap();
         MazeGrid {
@@ -56,7 +59,7 @@ impl MazeGrid {
             selected_algorithm: selected_generator,
             selected_generator,
             animation_queue: VecDeque::new(),
-            animation_state: PathfindingAnimationState::default(),
+            animation_state: AnimationState::default(),
             selected_maze_type: MazeType::Thick,
             pathfinding_stats: None,
             pathfinding_state: PathfindingState::default(),
@@ -97,14 +100,14 @@ impl MazeGrid {
 
     pub fn tick(&mut self) {
         if !self.animation_queue.is_empty() {
-            self.animation_state = PathfindingAnimationState::Running;
+            self.animation_state = AnimationState::Running;
             self.maze = self
                 .animation_queue
                 .pop_front()
                 .expect("Cannot pop animation frame");
             self.grid_cache.clear();
         } else {
-            self.animation_state = PathfindingAnimationState::NotRunning;
+            self.animation_state = AnimationState::NotRunning;
         }
     }
 
@@ -121,7 +124,7 @@ impl MazeGrid {
         self.pathfinding_state = PathfindingState::Running;
         self.maze = self.maze.from_original();
 
-        let (sender, reciever): (Sender<PathfindingResult>, Receiver<PathfindingResult>) =
+        let (sender, receiver): (Sender<PathfindingResult>, Receiver<PathfindingResult>) =
             channel();
 
         let mut maze = self.maze.clone();
@@ -155,10 +158,10 @@ impl MazeGrid {
             _ => unreachable!("Non-pathfinding algorithms should be filtered out"),
         });
 
-        while let Ok(recieved_result) = reciever.recv() {
-            self.maze = recieved_result.maze.clone();
-            self.animation_queue.push_back(recieved_result.maze);
-            self.pathfinding_stats = recieved_result.stats;
+        while let Ok(received_result) = receiver.recv() {
+            self.maze = received_result.maze.clone();
+            self.animation_queue.push_back(received_result.maze);
+            self.pathfinding_stats = received_result.stats;
         }
 
         handle.join().expect("Failed to join thread");
@@ -168,20 +171,36 @@ impl MazeGrid {
     }
 
     fn generate_maze(&mut self) {
-        if let Some(mut generator) = self.selected_generator.get_maze_generator() {
-            self.maze = generator
-                .generate(
-                    self.selected_maze_type,
-                    self.maze.width,
-                    self.maze.height,
-                    maze_lib::algorithms::Point { x: 1, y: 1 },
-                )
-                .unwrap();
-            self.grid_cache.clear();
-            self.animation_queue.clear();
-            self.animation_state = PathfindingAnimationState::default();
-            self.pathfinding_state = PathfindingState::default();
+        self.grid_cache.clear();
+        self.animation_queue.clear();
+        self.pathfinding_state = PathfindingState::Running;
+        self.maze = self.maze.from_original();
+        let (sender, receiver): (Sender<PathfindingResult>, Receiver<PathfindingResult>) =
+            channel();
+
+        let maze_type = self.selected_maze_type;
+        let selected_generator = self.selected_generator;
+        let width = self.maze.width;
+        let height = self.maze.height;
+        let handle = thread::spawn(move || {
+            if let Some(mut generator) = selected_generator.get_maze_generator() {
+                generator.generate(
+                    maze_type,
+                    width,
+                    height,
+                    maze_lib::algorithms::Point::default(),
+                    Some(&sender),
+                );
+            }
+        });
+
+        while let Ok(received_result) = receiver.recv() {
+            self.animation_queue.push_back(received_result.maze.clone());
         }
+
+        handle.join().expect("Failed to join thread");
+
+        self.grid_cache.clear();
     }
 }
 
@@ -299,7 +318,7 @@ impl canvas::Program<Message> for MazeGrid {
                 }
             }
 
-            if self.animation_state == PathfindingAnimationState::Running {
+            if self.animation_state == AnimationState::Running {
                 frame.stroke(
                     &Path::rectangle(
                         Point::new(0.0, 0.0),

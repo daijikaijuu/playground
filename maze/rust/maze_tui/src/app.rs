@@ -9,18 +9,19 @@ use enum_iterator::{next_cycle, previous_cycle};
 use maze_lib::{
     algorithms::{
         self, Algorithm, BellmanFord, MazeGenerationAlgorithm, PathfindingAlgorithm,
-        PathfindingAnimationState, PathfindingResult, PathfindingState, Point, DFS,
+        PathfindingResult, PathfindingState, Point, DFS,
     },
     Maze,
 };
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    buffer::Buffer,
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::Line,
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-use crate::maze_grid::MazeGrid;
+use crate::{animation::AnimationState, maze_grid::MazeGrid};
 
 pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 
@@ -31,14 +32,20 @@ pub struct App {
     animation_steps: VecDeque<Maze>,
     pub running: bool,
     pathfinding_state: PathfindingState,
-    animation_state: PathfindingAnimationState,
+    animation_state: AnimationState,
 }
 
 impl App {
     pub fn new() -> Self {
         let mut dfs = DFS::new();
         let maze = dfs
-            .generate(maze_lib::MazeType::Thick, 41, 41, Point { x: 1, y: 1 })
+            .generate(
+                maze_lib::MazeType::Thick,
+                41,
+                41,
+                Point { x: 1, y: 1 },
+                None,
+            )
             .unwrap();
         App {
             maze,
@@ -46,7 +53,7 @@ impl App {
             animation_steps: VecDeque::new(),
             running: true,
             pathfinding_state: PathfindingState::default(),
-            animation_state: PathfindingAnimationState::default(),
+            animation_state: AnimationState::default(),
         }
     }
 
@@ -58,9 +65,15 @@ impl App {
         self.animation_steps.clear();
         let mut dfs = DFS::new();
         self.maze = dfs
-            .generate(maze_lib::MazeType::Thick, 41, 41, Point { x: 1, y: 1 })
+            .generate(
+                maze_lib::MazeType::Thick,
+                41,
+                41,
+                Point { x: 1, y: 1 },
+                None,
+            )
             .unwrap();
-        self.animation_state = PathfindingAnimationState::default();
+        self.animation_state = AnimationState::default();
         self.pathfinding_state = PathfindingState::default();
     }
 
@@ -79,10 +92,10 @@ impl App {
                 let mut astar = algorithms::AStar::new();
                 astar.find_path(&mut maze, &sender)
             }
-            // Algorithm::Backtracking => {
-            //     let mut backtracking = algorithms::Backtracking::new();
-            //     backtracking.find_path(&mut maze, &sender);
-            // }
+            Algorithm::Backtracking => {
+                let mut backtracking = algorithms::Backtracking::new();
+                backtracking.find_path(&mut maze, &sender);
+            }
             Algorithm::BellmanFord => {
                 let mut bellman_ford = BellmanFord;
                 bellman_ford.find_path(&mut maze, &sender);
@@ -103,7 +116,7 @@ impl App {
         });
 
         while let Ok(received_result) = receiver.recv() {
-            self.animation_state = PathfindingAnimationState::Running;
+            self.animation_state = AnimationState::Running;
             self.animation_steps.push_back(received_result.maze);
         }
 
@@ -112,11 +125,11 @@ impl App {
     }
 
     pub fn tick(&mut self) {
-        if self.animation_state == PathfindingAnimationState::Running {
+        if self.animation_state == AnimationState::Running {
             if !self.animation_steps.is_empty() {
                 self.maze = self.animation_steps.pop_front().unwrap();
             } else {
-                self.animation_state = PathfindingAnimationState::default();
+                self.animation_state = AnimationState::default();
             }
         }
     }
@@ -131,19 +144,15 @@ impl App {
 
     pub fn pause_unpause_animation(&mut self) {
         match self.animation_state {
-            PathfindingAnimationState::NotRunning => {}
-            PathfindingAnimationState::Paused => {
-                self.animation_state = PathfindingAnimationState::Running
-            }
-            PathfindingAnimationState::Running => {
-                self.animation_state = PathfindingAnimationState::Paused
-            }
+            AnimationState::NotRunning => {}
+            AnimationState::Paused => self.animation_state = AnimationState::Running,
+            AnimationState::Running => self.animation_state = AnimationState::Paused,
         };
     }
 }
 
 impl Widget for &App {
-    fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
+    fn render(self, area: Rect, buf: &mut Buffer)
     where
         Self: Sized,
     {

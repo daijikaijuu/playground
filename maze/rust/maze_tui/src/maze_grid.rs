@@ -1,24 +1,23 @@
 use maze_lib::{
-    algorithms::{PathfindingAnimationState, PathfindingState, Point},
+    algorithms::{PathfindingState, Point},
     CellType, Maze,
 };
+use ratatui::{buffer::Buffer, prelude::Rect};
 use ratatui::{
     style::{Style, Stylize},
     widgets::{block::Title, Block, Borders, Widget},
 };
 
+use crate::animation::AnimationState;
+
 pub struct MazeGrid {
     maze: Maze,
     state: PathfindingState,
-    animation_state: PathfindingAnimationState,
+    animation_state: AnimationState,
 }
 
 impl MazeGrid {
-    pub fn new(
-        maze: &Maze,
-        state: PathfindingState,
-        animation_state: PathfindingAnimationState,
-    ) -> Self {
+    pub fn new(maze: &Maze, state: PathfindingState, animation_state: AnimationState) -> Self {
         MazeGrid {
             maze: maze.clone(),
             state,
@@ -28,7 +27,7 @@ impl MazeGrid {
 }
 
 impl Widget for MazeGrid {
-    fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
+    fn render(self, area: Rect, buf: &mut Buffer)
     where
         Self: Sized,
     {
@@ -38,9 +37,9 @@ impl Widget for MazeGrid {
             PathfindingState::Finished => "Pathfinding: Finished",
         });
         let animation_state_title = Title::from(match self.animation_state {
-            PathfindingAnimationState::Running => "Animation: Running",
-            PathfindingAnimationState::Paused => "Animation: Paused",
-            PathfindingAnimationState::NotRunning => "Animation: Not running",
+            AnimationState::Running => "Animation: Running",
+            AnimationState::Paused => "Animation: Paused",
+            AnimationState::NotRunning => "Animation: Not running",
         });
         let maze_block_title = Title::from("Maze crawler".bold());
         Block::default()

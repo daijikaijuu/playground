@@ -116,6 +116,7 @@ impl MazeGenerationAlgorithm for Backtracking {
         width: usize,
         height: usize,
         entrance: Point,
+        sender: Option<&Sender<PathfindingResult>>,
     ) -> Option<Maze> {
         let mut maze = Maze::new(width, height, maze_type, Some(CellType::Wall));
         let mut rng = rand::thread_rng();

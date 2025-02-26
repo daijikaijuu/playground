@@ -1,6 +1,8 @@
+use std::sync::mpsc::Sender;
+
 use crate::{Maze, MazeType};
 
-use super::Point;
+use super::{PathfindingResult, Point};
 
 pub trait MazeGenerationAlgorithm {
     fn generate(
@@ -9,5 +11,6 @@ pub trait MazeGenerationAlgorithm {
         width: usize,
         height: usize,
         entrance: Point,
+        sender: Option<&Sender<PathfindingResult>>,
     ) -> Option<Maze>;
 }
