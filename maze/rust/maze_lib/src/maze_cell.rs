@@ -132,7 +132,7 @@ impl SlimWallsCellType for MazeCell {
             (1, 0) => self.has_right_wall(),
             (0, 1) => self.has_bottom_wall(),
             (-1, 0) => self.has_left_wall(),
-            (0, -1) => self.has_right_wall(),
+            (0, -1) => self.has_top_wall(),
             _ => unreachable!(),
         }
     }

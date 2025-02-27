@@ -12,8 +12,8 @@ impl Movements {
 
     pub fn calculate_direction(current: Point, neighbor: Point) -> (i32, i32) {
         (
-            current.x as i32 - neighbor.x as i32,
-            current.y as i32 - neighbor.y as i32,
+            neighbor.x as i32 - current.x as i32,
+            neighbor.y as i32 - current.y as i32,
         )
     }
 

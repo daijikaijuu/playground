@@ -147,7 +147,6 @@ impl MazeGenerationAlgorithm for Backtracking {
                         x: new_x as usize,
                         y: new_y as usize,
                     };
-                    //let opposite = Movements::get_opposite_direction(new_x, new_y);
 
                     if !visited.contains(&next) {
                         match maze.maze_type {

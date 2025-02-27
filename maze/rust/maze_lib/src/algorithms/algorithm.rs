@@ -1,3 +1,5 @@
+use crate::MazeType;
+
 use super::Backtracking;
 use super::MazeGenerationAlgorithm;
 use super::DFS;
@@ -26,8 +28,11 @@ impl Algorithm {
         Algorithm::WFC,
     ];
 
-    pub fn maze_generation_algorithms() -> Vec<Algorithm> {
-        vec![Algorithm::DFS, Algorithm::Backtracking]
+    pub fn maze_generation_algorithms(maze_type: MazeType) -> Vec<Algorithm> {
+        match maze_type {
+            MazeType::Thick => vec![Algorithm::DFS, Algorithm::Backtracking],
+            MazeType::Slim => vec![Algorithm::Backtracking],
+        }
     }
 
     pub fn pathfinding_algorithms() -> Vec<Algorithm> {

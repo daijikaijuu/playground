@@ -40,6 +40,16 @@ impl MainWindow {
             Message::MazeTypeSelected(maze_type) => {
                 self.selected_maze_type = Some(maze_type);
                 self.maze_grid.selected_maze_type = maze_type;
+                if let Some(selected_algorithm) = self.selected_generator {
+                    let maze_type = self.selected_maze_type.unwrap_or_default();
+                    if !Algorithm::maze_generation_algorithms(maze_type)
+                        .contains(&selected_algorithm)
+                    {
+                        self.selected_generator = Algorithm::maze_generation_algorithms(maze_type)
+                            .first()
+                            .copied();
+                    }
+                }
             }
             Message::MazeGrid(message) => {
                 self.maze_grid.update(message);
@@ -67,7 +77,7 @@ impl MainWindow {
         .placeholder("Choose a pathfinding algorithm");
 
         let generator_selector_list = pick_list(
-            Algorithm::maze_generation_algorithms(),
+            Algorithm::maze_generation_algorithms(self.selected_maze_type.unwrap_or_default()),
             self.selected_generator,
             Message::GeneratorSelected,
         )

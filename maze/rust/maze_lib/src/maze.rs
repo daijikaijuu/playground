@@ -189,6 +189,7 @@ impl Maze {
 
         let direction = Movements::calculate_direction(current, neighbor);
         let opposite_direction = Movements::get_opposite_direction(direction.0, direction.1);
+
         let current_idx = self.get_index(current.x, current.y);
         let neighbor_idx = self.get_index(neighbor.x, neighbor.y);
 
@@ -246,5 +247,22 @@ impl fmt::Debug for Maze {
             writeln!(f)?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_remove_walls_between_cells() {
+        let mut maze = Maze::new(3, 3, MazeType::Slim, Some(CellType::Path));
+        let current = Point { x: 1, y: 1 };
+        let neighbor = Point { x: 1, y: 2 };
+
+        maze.remove_walls_between_cells(current, neighbor);
+
+        assert!(!maze.get_cell(current).has_wall_in_direction((0, 1)));
+        assert!(!maze.get_cell(neighbor).has_wall_in_direction((0, -1)));
     }
 }

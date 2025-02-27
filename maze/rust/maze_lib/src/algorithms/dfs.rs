@@ -98,15 +98,16 @@ impl DFS {
             let new_y = current.y as i32 + dy;
 
             if maze.is_valid_coord(new_x, new_y) {
+                maze.mark_cell_as_path(current);
                 let neighbor = Point {
                     x: new_x as usize,
                     y: new_y as usize,
                 };
 
                 if maze.is_not_passable(current, neighbor) {
+                    maze.mark_cell_as_path(neighbor);
                     match maze.maze_type {
                         MazeType::Thick => {
-                            maze.mark_cell_as_path(neighbor);
                             maze.mark_cell_as_path(Point {
                                 x: (current.x + neighbor.x) / 2,
                                 y: (current.y + neighbor.y) / 2,
@@ -160,10 +161,11 @@ impl MazeGenerationAlgorithm for DFS {
             width,
             height,
             maze_type,
-            Some(match maze_type {
-                MazeType::Thick => CellType::Wall,
-                MazeType::Slim => CellType::Path,
-            }),
+            Some(CellType::Wall),
+            //Some(match maze_type {
+            //    MazeType::Thick => CellType::Wall,
+            //    MazeType::Slim => CellType::Path,
+            //}),
         );
         let mut rng = rand::thread_rng();
 
