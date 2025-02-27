@@ -18,7 +18,6 @@ pub struct MazeCell {
 impl Default for MazeCell {
     fn default() -> Self {
         MazeCell {
-            walls: 0,
             walls: 0b1111,
             cell_type: CellType::default(),
         }
@@ -29,7 +28,6 @@ impl MazeCell {
     pub fn new(cell_type: CellType) -> Self {
         MazeCell {
             cell_type,
-            walls: 0,
             walls: 0b1111,
         }
     }
