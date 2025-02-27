@@ -19,6 +19,7 @@ impl Default for MazeCell {
     fn default() -> Self {
         MazeCell {
             walls: 0,
+            walls: 0b1111,
             cell_type: CellType::default(),
         }
     }
@@ -29,6 +30,7 @@ impl MazeCell {
         MazeCell {
             cell_type,
             walls: 0,
+            walls: 0b1111,
         }
     }
 
