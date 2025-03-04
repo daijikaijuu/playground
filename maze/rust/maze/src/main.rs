@@ -90,7 +90,7 @@ impl MainWindow {
         ]
         .spacing(10);
 
-        let top_controls = row![
+        let left_controls = column![
             text("Maze crawler").size(20),
             maze_type_selector_list,
             algorithm_selector_list,
@@ -99,10 +99,10 @@ impl MainWindow {
         ]
         .spacing(10);
 
-        let top_space = vertical_space().height(5);
-        let bottom_space = vertical_space().height(5);
+        let left_space = vertical_space().width(5);
+        let right_space = vertical_space().width(5);
         let maze_view = self.maze_grid.view().map(Message::MazeGrid);
-        let content = column![top_space, top_controls, bottom_space, maze_view];
+        let content = row![left_space, left_controls, right_space, maze_view];
 
         content.into()
     }
